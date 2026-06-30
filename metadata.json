@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Cash Payout \u0026 Denomination Calculator",
+  "description": "Calculate and distribute cash payouts among functionaries with specific denominations and notes counts, supporting templates, print slips, and two operation modes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

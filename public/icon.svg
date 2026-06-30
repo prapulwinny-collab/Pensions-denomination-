@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1" />
+      <stop offset="50%" stop-color="#4f46e5" />
+      <stop offset="100%" stop-color="#312e81" />
+    </linearGradient>
+
+    <!-- Banknote Body Gradient -->
+    <linearGradient id="noteGrad" x1="0%" y1="0%" x2="100%" y2="80%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+
+    <!-- Coin Body Gradient -->
+    <linearGradient id="coinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="50%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+
+    <!-- Drop Shadows -->
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0f172a" flood-opacity="0.35" />
+    </filter>
+    
+    <filter id="noteShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="4" dy="16" stdDeviation="12" flood-color="#1e1b4b" flood-opacity="0.4" />
+    </filter>
+
+    <filter id="coinShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#1e1b4b" flood-opacity="0.45" />
+    </filter>
+  </defs>
+
+  <!-- PWA Squircle Background -->
+  <rect x="16" y="16" width="480" height="480" rx="108" fill="url(#bgGrad)" />
+
+  <!-- Outer Ring Detail -->
+  <rect x="36" y="36" width="440" height="440" rx="90" fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-width="6" />
+
+  <!-- Graphic Elements Group (Centered with Shadow) -->
+  <g filter="url(#shadow)">
+    
+    <!-- Banknote 1 (Background stack, slightly angled) -->
+    <g transform="rotate(-6, 256, 256)">
+      <rect x="96" y="160" width="320" height="180" rx="16" fill="#065f46" opacity="0.8" />
+      <rect x="108" y="172" width="296" height="156" rx="10" fill="none" stroke="#10b981" stroke-width="4" stroke-dasharray="10 6" opacity="0.6" />
+    </g>
+
+    <!-- Banknote 2 (Foreground stack, straight, custom-styled) -->
+    <g filter="url(#noteShadow)">
+      <rect x="106" y="180" width="310" height="174" rx="18" fill="url(#noteGrad)" />
+      
+      <!-- Border Pattern -->
+      <rect x="120" y="194" width="282" height="146" rx="10" fill="none" stroke="#6ee7b7" stroke-width="4" stroke-dasharray="12 6" />
+      
+      <!-- Internal decorative corner accents -->
+      <rect x="130" y="204" width="24" height="24" rx="4" fill="none" stroke="#a7f3d0" stroke-width="2" opacity="0.5" />
+      <rect x="358" y="204" width="24" height="24" rx="4" fill="none" stroke="#a7f3d0" stroke-width="2" opacity="0.5" />
+      <rect x="130" y="296" width="24" height="24" rx="4" fill="none" stroke="#a7f3d0" stroke-width="2" opacity="0.5" />
+      <rect x="358" y="296" width="24" height="24" rx="4" fill="none" stroke="#a7f3d0" stroke-width="2" opacity="0.5" />
+      
+      <!-- Center Guilloche Star / Geometric Emblem -->
+      <circle cx="261" cy="267" r="46" fill="#047857" opacity="0.6" />
+      <circle cx="261" cy="267" r="38" fill="none" stroke="#a7f3d0" stroke-width="3" />
+      <path d="M 261,241 L 271,260 L 291,267 L 271,274 L 261,293 L 251,274 L 231,267 L 251,260 Z" fill="#6ee7b7" />
+      
+      <!-- Banknote Value text mock -->
+      <text x="144" y="234" font-family="system-ui, sans-serif" font-size="22" font-weight="900" fill="#a7f3d0" letter-spacing="1">100</text>
+      <text x="350" y="324" font-family="system-ui, sans-serif" font-size="22" font-weight="900" fill="#a7f3d0" letter-spacing="1">100</text>
+    </g>
+
+    <!-- Calculator Grid overlay in bottom-left corner of the note -->
+    <rect x="140" y="260" width="48" height="40" rx="6" fill="#047857" opacity="0.7" />
+    <line x1="156" y1="260" x2="156" y2="300" stroke="#a7f3d0" stroke-width="1.5" opacity="0.5" />
+    <line x1="172" y1="260" x2="172" y2="300" stroke="#a7f3d0" stroke-width="1.5" opacity="0.5" />
+    <line x1="140" y1="280" x2="188" y2="280" stroke="#a7f3d0" stroke-width="1.5" opacity="0.5" />
+
+    <!-- Shiny Golden Coin 1 (Bottom right foreground overlay) -->
+    <g transform="translate(330, 290)" filter="url(#coinShadow)">
+      <circle cx="50" cy="50" r="60" fill="url(#coinGrad)" />
+      
+      <!-- Inner milled border -->
+      <circle cx="50" cy="50" r="50" fill="none" stroke="#fef08a" stroke-width="4" stroke-dasharray="6 3" />
+      <circle cx="50" cy="50" r="44" fill="none" stroke="#b45309" stroke-width="1" opacity="0.5" />
+      
+      <!-- Centered Currency Symbol (Dynamic Coin Accent) -->
+      <text x="50" y="65" font-family="system-ui, sans-serif" font-size="44" font-weight="800" fill="#fef08a" text-anchor="middle" filter="drop-shadow(0px 3px 2px rgba(0,0,0,0.2))">
+        $
+      </text>
+      
+      <!-- Shimmer Highlight Reflection -->
+      <path d="M 12 28 A 50 50 0 0 1 88 28 A 45 45 0 0 0 12 28 Z" fill="#ffffff" opacity="0.25" />
+    </g>
+  </g>
+</svg>
