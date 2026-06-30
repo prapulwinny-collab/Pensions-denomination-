@@ -12,6 +12,7 @@ interface DistributionReportProps {
   onUpdateOverride: (id: string, override: PayoutAllocation | null) => void;
   onClearOverrides: () => void;
   isEquivalentMode: boolean;
+  ensureAllDenominations?: boolean;
 }
 
 export default function DistributionReport({
@@ -23,6 +24,7 @@ export default function DistributionReport({
   onUpdateOverride,
   onClearOverrides,
   isEquivalentMode,
+  ensureAllDenominations = true,
 }: DistributionReportProps) {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -30,7 +32,7 @@ export default function DistributionReport({
   const denominations = selectedCurrency.denominations;
 
   const handleCopyText = () => {
-    const text = generateShareableSummary(summary, functionaries, denominations, selectedCurrency.symbol, isUnlimited, isEquivalentMode);
+    const text = generateShareableSummary(summary, functionaries, denominations, selectedCurrency.symbol, isUnlimited, isEquivalentMode, ensureAllDenominations);
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -223,7 +225,7 @@ export default function DistributionReport({
           <div>
             <h2 className="font-display font-semibold text-gray-900 text-lg">Staff Payout Breakdown</h2>
             <p className="text-xs text-gray-500">
-              Review and adjust notes assigned to each functionary using <b>{isEquivalentMode ? 'Equivalent Division' : 'Greedy Division'}</b>.
+              Review and adjust notes assigned to each functionary using <b>{isEquivalentMode ? 'Equivalent Division' : 'Greedy Division'}</b>{ensureAllDenominations ? ' with ' : ''}<b>{ensureAllDenominations ? 'Variety Mode (All Denominations)' : ''}</b>.
             </p>
           </div>
 

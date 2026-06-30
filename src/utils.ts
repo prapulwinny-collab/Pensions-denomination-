@@ -12,7 +12,8 @@ export function calculateDistribution(
   stock: DenominationStock,
   isUnlimited: boolean,
   manualOverrides: Record<string, PayoutAllocation | null> = {},
-  isEquivalentMode: boolean = false
+  isEquivalentMode: boolean = false,
+  ensureAllDenominations: boolean = true
 ): DistributionSummary {
   const totalTargetPayout = functionaries.reduce((sum, f) => sum + f.amount, 0);
   
@@ -75,10 +76,12 @@ export function calculateDistribution(
 
   sortedAutoFunctionaries.forEach(f => {
     const notes: PayoutAllocation = {};
+    // Initialize all notes to 0
+    denominations.forEach(denom => { notes[denom] = 0; });
+
     let remainingPayout = f.amount;
 
     if (f.amount <= 0) {
-      denominations.forEach(denom => { notes[denom] = 0; });
       allocations[f.id] = {
         functionaryId: f.id,
         allocatedAmount: 0,
@@ -88,16 +91,32 @@ export function calculateDistribution(
       return;
     }
 
-    if (isEquivalentMode) {
-      denominations.forEach(denom => { notes[denom] = 0; });
+    // A. Pre-allocation of one of each declared available denomination if requested
+    if (ensureAllDenominations) {
+      // Find and sort available denominations in ascending order (smallest first) to maximize diversity
+      const availableDenoms = [...denominations]
+        .filter(d => (leftoverNotes[d] || 0) > 0)
+        .sort((a, b) => a - b);
 
+      availableDenoms.forEach(denom => {
+        if (remainingPayout >= denom) {
+          notes[denom] = 1;
+          remainingPayout -= denom;
+          if (!isUnlimited) {
+            leftoverNotes[denom] -= 1;
+          }
+        }
+      });
+    }
+
+    if (isEquivalentMode) {
       // In unlimited mode, optimize by doing a flat pass of k of each note first to handle huge amounts instantly
       if (isUnlimited) {
         const S = denominations.reduce((sum, d) => sum + d, 0);
         const k = Math.floor(remainingPayout / S);
         if (k > 0) {
           denominations.forEach(denom => {
-            notes[denom] = k;
+            notes[denom] = (notes[denom] || 0) + k;
           });
           remainingPayout -= k * S;
         }
@@ -136,16 +155,12 @@ export function calculateDistribution(
           const allocated = isUnlimited ? maxNotesNeeded : Math.min(maxNotesNeeded, available);
 
           if (allocated > 0) {
-            notes[denom] = allocated;
+            notes[denom] = (notes[denom] || 0) + allocated;
             remainingPayout -= allocated * denom;
             if (!isUnlimited) {
               leftoverNotes[denom] -= allocated;
             }
-          } else {
-            notes[denom] = 0;
           }
-        } else {
-          notes[denom] = 0;
         }
       });
     }
@@ -227,13 +242,14 @@ export function generateShareableSummary(
   denominations: number[],
   currencySymbol: string,
   isUnlimited: boolean,
-  isEquivalentMode: boolean = false
+  isEquivalentMode: boolean = false,
+  ensureAllDenominations: boolean = true
 ): string {
   const dateStr = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   let text = `💵 *Cash Distribution Summary - ${dateStr}*\n`;
   text += `-------------------------------------------\n`;
   text += `🎯 Total Payouts: ${formatCurrency(summary.totalTargetPayout, currencySymbol)}\n`;
-  text += `⚙️ Strategy: ${isEquivalentMode ? 'Equivalent (Balanced Mix)' : 'Greedy (Fewer Notes)'}\n`;
+  text += `⚙️ Strategy: ${isEquivalentMode ? 'Equivalent (Balanced Mix)' : 'Greedy (Fewer Notes)'}${ensureAllDenominations ? ' [Ensure Variety Active]' : ''}\n`;
   
   if (isUnlimited) {
     text += `📈 Mode: Withdrawal Planner (Unlimited Drawer)\n\n`;
