@@ -442,123 +442,7 @@ export default function DistributionReport({
       {/* Close the On-Screen Interactive Report wrapper */}
       </div>
 
-      {/* Print Page 1: Executive Summary & Bank Checklist (Hidden on screen, styled for ISO A4 print) */}
-      <div className="hidden print:block print-only print-page" id="printable-summary-page">
-        {/* Header */}
-        <div className="flex justify-between items-center border-b-2 border-slate-800 pb-3 mb-6">
-          <div>
-            <h1 className="font-display font-extrabold text-lg text-slate-900 uppercase tracking-tight">
-              Cash Payout Summary Report
-            </h1>
-            <p className="text-[10px] text-slate-500 font-mono mt-0.5">
-              Report Generated: {formatDateDDMMYYYY()}
-            </p>
-          </div>
-          <div className="text-right">
-            <span className="text-[9px] uppercase font-extrabold text-slate-500 tracking-wider block">Currency Code</span>
-            <span className="font-mono text-xs font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-              {selectedCurrency.code} ({selectedCurrency.symbol})
-            </span>
-          </div>
-        </div>
-
-        {/* Metric Cards Grid for Print */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
-          <div className="border border-slate-300 p-4 rounded-xl flex flex-col justify-between">
-            <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block">
-              Target Payout Total
-            </span>
-            <span className="text-lg font-black text-slate-900 font-display mt-1 block">
-              {formatCurrency(totalPayout, selectedCurrency.symbol)}
-            </span>
-            <span className="text-[9px] text-slate-500 font-medium block mt-0.5">
-              {functionaries.length} Staff Members
-            </span>
-          </div>
-
-          <div className="border border-slate-300 p-4 rounded-xl flex flex-col justify-between">
-            <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block">
-              Allocated Cash
-            </span>
-            <span className="text-lg font-black text-slate-900 font-display mt-1 block">
-              {formatCurrency(summary.totalAllocated, selectedCurrency.symbol)}
-            </span>
-            <span className="text-[9px] text-slate-500 font-medium block mt-0.5">
-              {totalPayout > 0 ? `${Math.round((summary.totalAllocated / totalPayout) * 100)}% Fulfilled` : '0%'}
-            </span>
-          </div>
-
-          <div className="border border-slate-300 p-4 rounded-xl flex flex-col justify-between">
-            <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block">
-              Leftover in Drawer
-            </span>
-            <span className="text-lg font-black text-slate-900 font-display mt-1 block">
-              {formatCurrency(summary.unallocatedCash, selectedCurrency.symbol)}
-            </span>
-            <span className="text-[9px] text-slate-500 font-medium block mt-0.5">
-              Change remaining
-            </span>
-          </div>
-
-          <div className="border border-slate-300 p-4 rounded-xl flex flex-col justify-between">
-            <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block">
-              Cash Shortfall
-            </span>
-            <span className={`text-lg font-black font-display mt-1 block ${summary.unpaidPayout > 0 ? 'text-rose-700' : 'text-slate-500'}`}>
-              {formatCurrency(summary.unpaidPayout, selectedCurrency.symbol)}
-            </span>
-            <span className="text-[9px] text-slate-500 font-medium block mt-0.5">
-              Unsatisfied amount
-            </span>
-          </div>
-        </div>
-
-        {/* Bank Checklist / Note Breakdown for Print */}
-        <div className="border border-slate-300 rounded-xl p-5 bg-slate-50/50 flex-1 flex flex-col justify-between">
-          <div>
-            <h3 className="font-display font-black text-xs text-slate-800 border-b border-slate-200 pb-2 mb-4 uppercase tracking-wider">
-              🏦 Bank Cash Withdrawal Checklist
-            </h3>
-            <p className="text-xs text-slate-600 mb-4 font-medium">
-              Take this checklist to your bank teller to withdraw the exact denominations required for perfect, error-free physical cash distribution.
-            </p>
-
-            <div className="grid grid-cols-3 gap-3">
-              {denominations.map(denom => {
-                const notesNeeded = summary.notesNeededForPerfectPayout[denom] || 0;
-                if (notesNeeded <= 0) return null;
-                return (
-                  <div key={denom} className="bg-white border border-slate-200 shadow-3xs rounded-lg p-2.5 flex flex-col justify-between">
-                    <span className="text-[9px] font-bold text-slate-500 uppercase font-mono">
-                      {selectedCurrency.symbol}{denom} Notes
-                    </span>
-                    <span className="text-base font-black font-mono text-slate-900 mt-0.5">
-                      {notesNeeded} <span className="text-[10px] font-normal text-slate-500">bills</span>
-                    </span>
-                    <span className="text-[9px] text-slate-500 mt-0.5 font-mono">
-                      Value: {formatCurrency(notesNeeded * denom, selectedCurrency.symbol)}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Bottom Footer block of Page 1 */}
-          <div className="border-t border-slate-200 pt-4 mt-6 grid grid-cols-2 gap-8 text-[11px] text-slate-500">
-            <div>
-              <p className="font-bold text-slate-700">Reporting Officer Signature</p>
-              <div className="border-b border-slate-300 h-8 w-44 mt-1"></div>
-            </div>
-            <div className="text-right">
-              <p className="font-bold text-slate-700">Date of Audit Verification</p>
-              <p className="font-mono mt-3 text-slate-800 font-bold">{formatDateDDMMYYYY()}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Print Page 2: Detailed Staff Payout Schedule (Hidden on screen, styled for ISO A4 print) */}
+      {/* Print Page 1: Detailed Staff Payout Schedule (Hidden on screen, styled for ISO A4 print) */}
       <div className="hidden print:block print-only print-page" id="printable-schedule-page">
         {/* Header */}
         <div className="flex justify-between items-center border-b-2 border-slate-800 pb-3 mb-6">
@@ -620,13 +504,13 @@ export default function DistributionReport({
             </tbody>
           </table>
 
-          {/* Footer block for Page 2 */}
+          {/* Footer block for Detailed Schedule */}
           <div className="p-3 bg-slate-50 border-t border-slate-300 flex justify-between items-center text-[10px] text-slate-500">
             <div>
               <p className="font-semibold text-slate-600">Total Payout Fulfilled: <span className="font-bold text-slate-800 font-mono">{formatCurrency(summary.totalAllocated, selectedCurrency.symbol)}</span></p>
             </div>
             <div>
-              <p className="font-mono">Page 2 of 2</p>
+              <p className="font-mono">Payout Schedule</p>
             </div>
           </div>
         </div>

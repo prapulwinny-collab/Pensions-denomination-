@@ -4,7 +4,6 @@ import { Currency, DenominationStock, Functionary, PayoutAllocation } from './ty
 import { calculateDistribution, getSampleFunctionaries, getSampleStock, formatDateDDMMYYYY } from './utils';
 
 // Import our modular components
-import CurrencySelector from './components/CurrencySelector';
 import CashDrawer from './components/CashDrawer';
 import FunctionaryList from './components/FunctionaryList';
 import DistributionReport from './components/DistributionReport';
@@ -26,6 +25,21 @@ export default function App() {
     }
   }, [darkMode]);
 
+  // Ask for confirmation before exiting the app
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      // Required for compatibility with various browsers
+      e.returnValue = 'Are you sure you want to exit the application?';
+      return 'Are you sure you want to exit the application?';
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
+
   // Preset currencies
   const defaultCurrency = {
     code: 'INR',
@@ -35,7 +49,7 @@ export default function App() {
   };
 
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>(defaultCurrency);
-  const [isUnlimited, setIsUnlimited] = useState<boolean>(true); // Default to bank withdrawal planning
+  const isUnlimited = false;
 
   // Stock of denominations
   const [stock, setStock] = useState<DenominationStock>(() => {
@@ -205,24 +219,17 @@ export default function App() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 no-print">
-          {/* Left Column - Currency Selector & Cash Drawer (Span 5) */}
-          <div className="lg:col-span-5 space-y-6 flex flex-col h-full">
-            <CurrencySelector
+          {/* Left Column - Cash Drawer Inventory (Span 4) */}
+          <div className="lg:col-span-4 flex flex-col h-full">
+            <CashDrawer
               selectedCurrency={selectedCurrency}
+              stock={stock}
+              onUpdateStock={setStock}
             />
-            <div className="flex-1">
-              <CashDrawer
-                selectedCurrency={selectedCurrency}
-                isUnlimited={isUnlimited}
-                onToggleUnlimited={setIsUnlimited}
-                stock={stock}
-                onUpdateStock={setStock}
-              />
-            </div>
           </div>
 
-          {/* Right Column - Functionary Management List (Span 7) */}
-          <div className="lg:col-span-7 flex flex-col h-full">
+          {/* Right Column - Functionary Management List (Span 8) */}
+          <div className="lg:col-span-8 flex flex-col h-full">
             <FunctionaryList
               selectedCurrency={selectedCurrency}
               functionaries={functionaries}
