@@ -40,14 +40,14 @@ export default function DistributionReport({
 
   const handleExportCSV = () => {
     let csvContent = 'data:text/csv;charset=utf-8,';
-    csvContent += `Functionary Name,Target Payout,Allocated Payout,Status,${denominations.map(d => `${selectedCurrency.code} ${d}`).join(',')}\n`;
+    csvContent += `Functionary Name,No of Pensions,Target Payout,Allocated Payout,Status,${denominations.map(d => `${selectedCurrency.code} ${d}`).join(',')}\n`;
 
     functionaries.forEach(f => {
       const alloc = summary.allocations[f.id];
       if (!alloc) return;
       const rowNotes = denominations.map(d => alloc.notes[d] || 0).join(',');
       const statusText = alloc.status.toUpperCase().replace('_', ' ');
-      csvContent += `"${f.name}",${f.amount},${alloc.allocatedAmount},"${statusText}",${rowNotes}\n`;
+      csvContent += `"${f.name}",${f.pensions || 1},${f.amount},${alloc.allocatedAmount},"${statusText}",${rowNotes}\n`;
     });
 
     const encodedUri = encodeURI(csvContent);
@@ -86,20 +86,23 @@ export default function DistributionReport({
   // Return background colors for different denominations for realistic bill rendering
   const getBillColor = (denom: number) => {
     if (selectedCurrency.code === 'INR') {
-      if (denom === 500) return 'bg-stone-100 text-stone-800 border-stone-200';
-      if (denom === 200) return 'bg-orange-50 text-orange-800 border-orange-200';
-      if (denom === 100) return 'bg-indigo-50 text-indigo-800 border-indigo-200';
-      if (denom === 50) return 'bg-cyan-50 text-cyan-800 border-cyan-200';
-      if (denom === 20) return 'bg-emerald-50 text-emerald-800 border-emerald-200';
-      if (denom === 10) return 'bg-amber-50 text-amber-800 border-amber-200';
-      return 'bg-slate-100 text-slate-800 border-slate-200';
+      if (denom === 500) return 'bg-stone-100 text-stone-800 border-stone-300 shadow-3xs dark:bg-stone-900 dark:text-stone-100 dark:border-stone-800';
+      if (denom === 200) return 'bg-amber-100 text-amber-900 border-amber-300 shadow-3xs dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/50';
+      if (denom === 100) return 'bg-sky-100 text-sky-900 border-sky-300 shadow-3xs dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-900/50';
+      if (denom === 50) return 'bg-cyan-100 text-cyan-900 border-cyan-300 shadow-3xs dark:bg-cyan-950/40 dark:text-cyan-300 dark:border-cyan-900/50';
+      if (denom === 20) return 'bg-emerald-100 text-emerald-900 border-emerald-300 shadow-3xs dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/50';
+      if (denom === 10) return 'bg-rose-100 text-rose-900 border-rose-300 shadow-3xs dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900/50';
+      return 'bg-slate-100 text-slate-800 border-slate-300 shadow-3xs dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700';
     }
     if (selectedCurrency.code === 'USD') {
-      if (denom === 100) return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-      if (denom === 50) return 'bg-teal-50 text-teal-800 border-teal-200';
-      return 'bg-green-50 text-green-800 border-green-200';
+      if (denom === 100) return 'bg-emerald-100 text-emerald-900 border-emerald-300 shadow-3xs dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/50';
+      if (denom === 50) return 'bg-teal-100 text-teal-900 border-teal-300 shadow-3xs dark:bg-teal-950/40 dark:text-teal-300 dark:border-teal-900/50';
+      if (denom === 20) return 'bg-green-100 text-green-900 border-green-300 shadow-3xs dark:bg-green-950/40 dark:text-green-300 dark:border-green-900/50';
+      if (denom === 10) return 'bg-amber-100 text-amber-900 border-amber-300 shadow-3xs dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/50';
+      if (denom === 5) return 'bg-rose-100 text-rose-900 border-rose-300 shadow-3xs dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900/50';
+      return 'bg-slate-100 text-slate-800 border-slate-300 shadow-3xs dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700';
     }
-    return 'bg-indigo-50/60 text-indigo-900 border-indigo-100';
+    return 'bg-amber-50/80 text-amber-950 border-amber-200 shadow-3xs dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/50';
   };
 
   const hasAnyOverrides = Object.keys(manualOverrides).length > 0;
@@ -108,67 +111,67 @@ export default function DistributionReport({
     <div className="space-y-6" id="distribution-report-container">
       {/* 1. Metric Cards Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4" id="metrics-row">
-        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
+        <div className="bg-gradient-to-br from-amber-50 to-amber-100/40 p-5 rounded-2xl border border-amber-100 shadow-3xs dark:from-slate-900 dark:to-slate-950 dark:border-slate-800">
+          <span className="text-[10px] font-extrabold text-amber-700/80 uppercase tracking-widest block font-display dark:text-amber-450">
             Target Payout Total
           </span>
-          <span className="text-xl font-bold text-gray-900 font-display mt-1 block">
+          <span className="text-2xl font-black text-amber-950 dark:text-white font-display mt-1 block">
             {formatCurrency(totalPayout, selectedCurrency.symbol)}
           </span>
-          <span className="text-[10px] text-gray-400 mt-0.5 block">
+          <span className="text-[10px] text-amber-600 dark:text-slate-400 font-bold mt-0.5 block font-sans">
             Requested by {functionaries.length} staff
           </span>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
+        <div className="bg-gradient-to-br from-rose-50 to-rose-100/40 p-5 rounded-2xl border border-rose-100 shadow-3xs dark:from-slate-900 dark:to-slate-950 dark:border-slate-800">
+          <span className="text-[10px] font-extrabold text-rose-700/80 uppercase tracking-widest block font-display dark:text-rose-450">
             Allocated Cash
           </span>
-          <span className="text-xl font-bold text-emerald-600 font-display mt-1 block">
+          <span className="text-2xl font-black text-rose-950 dark:text-white font-display mt-1 block">
             {formatCurrency(summary.totalAllocated, selectedCurrency.symbol)}
           </span>
-          <span className="text-[10px] text-emerald-600 mt-0.5 font-medium block flex items-center gap-0.5">
-            <CheckCircle2 className="w-3 h-3 inline" />
+          <span className="text-[10px] text-rose-600 dark:text-slate-400 mt-0.5 font-bold block flex items-center gap-0.5 font-sans">
+            <CheckCircle2 className="w-3 h-3 inline text-rose-500" />
             {totalPayout > 0 ? `${Math.round((summary.totalAllocated / totalPayout) * 100)}% Fulfilled` : '0%'}
           </span>
         </div>
 
         {!isUnlimited ? (
           <>
-            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
+            <div className="bg-gradient-to-br from-orange-50 to-orange-100/40 p-5 rounded-2xl border border-orange-100 shadow-3xs dark:from-slate-900 dark:to-slate-950 dark:border-slate-800">
+              <span className="text-[10px] font-extrabold text-orange-700/80 uppercase tracking-widest block font-display dark:text-orange-450">
                 Leftover in Drawer
               </span>
-              <span className="text-xl font-bold text-indigo-600 font-display mt-1 block">
+              <span className="text-2xl font-black text-orange-950 dark:text-white font-display mt-1 block">
                 {formatCurrency(summary.unallocatedCash, selectedCurrency.symbol)}
               </span>
-              <span className="text-[10px] text-gray-400 mt-0.5 block">
+              <span className="text-[10px] text-orange-600 dark:text-slate-400 font-bold mt-0.5 block font-sans">
                 Notes not distributed
               </span>
             </div>
 
-            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
+            <div className="bg-gradient-to-br from-amber-50 to-amber-100/40 p-5 rounded-2xl border border-amber-100 shadow-3xs dark:from-slate-900 dark:to-slate-950 dark:border-slate-800">
+              <span className="text-[10px] font-extrabold text-amber-700/80 uppercase tracking-widest block font-display dark:text-amber-450">
                 Cash Shortfall
               </span>
-              <span className={`text-xl font-bold font-display mt-1 block ${summary.unpaidPayout > 0 ? 'text-amber-600' : 'text-gray-500'}`}>
+              <span className={`text-2xl font-black font-display mt-1 block ${summary.unpaidPayout > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400'}`}>
                 {formatCurrency(summary.unpaidPayout, selectedCurrency.symbol)}
               </span>
-              <span className="text-[10px] text-gray-400 mt-0.5 block">
+              <span className="text-[10px] text-amber-600 dark:text-slate-400 font-bold mt-0.5 block font-sans">
                 Unsatisfied payout total
               </span>
             </div>
           </>
         ) : (
           <>
-            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm col-span-2">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
+            <div className="bg-gradient-to-br from-amber-50 to-rose-50/50 p-5 rounded-2xl border border-amber-100 shadow-3xs col-span-2 flex flex-col justify-center dark:from-slate-900 dark:to-slate-950 dark:border-slate-800">
+              <span className="text-[10px] font-extrabold text-rose-700/80 uppercase tracking-widest block font-display dark:text-rose-450">
                 Perfect Change Mode
               </span>
-              <span className="text-sm font-semibold text-indigo-700 font-display mt-1.5 block">
+              <span className="text-sm font-black text-rose-950 dark:text-white font-display mt-1 block">
                 Unlimited Cash Reserves Enabled
               </span>
-              <span className="text-[10px] text-gray-400 mt-0.5 block leading-tight">
+              <span className="text-[10px] text-rose-600 dark:text-slate-400 font-bold mt-0.5 block font-sans">
                 No note shortages. Shows exact notes needed for withdrawal.
               </span>
             </div>
@@ -178,19 +181,19 @@ export default function DistributionReport({
 
       {/* 2. Mode-Specific Displays */}
       {isUnlimited && (
-        <div className="bg-indigo-600 text-white rounded-2xl p-6 shadow-md shadow-indigo-100" id="bank-order-panel">
+        <div className="bg-gradient-to-br from-amber-600 to-rose-500 text-white rounded-2xl p-6 shadow-md shadow-rose-100 dark:from-rose-950 dark:to-amber-950 dark:shadow-none dark:border dark:border-slate-800" id="bank-order-panel">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
             <div>
-              <h3 className="text-base font-display font-bold">🏦 Bank Cash Withdrawal Checklist</h3>
-              <p className="text-xs text-indigo-100 mt-0.5">
+              <h3 className="text-base font-display font-black tracking-tight">🏦 Bank Cash Withdrawal Checklist</h3>
+              <p className="text-xs text-rose-50 mt-0.5 font-medium">
                 Take this list to the teller to withdraw the exact coins & notes required.
               </p>
             </div>
             <button
               onClick={handleCopyText}
-              className="flex items-center gap-1 px-3.5 py-1.5 bg-indigo-500 hover:bg-indigo-400 text-white rounded-lg text-xs font-semibold border border-indigo-400 transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-rose-50 text-rose-800 rounded-xl text-xs font-black transition-all cursor-pointer shadow-3xs dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-rose-300"
             >
-              <Clipboard className="w-3.5 h-3.5" />
+              <Clipboard className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
               Copy Bank Order
             </button>
           </div>
@@ -200,15 +203,15 @@ export default function DistributionReport({
               const notesNeeded = summary.notesNeededForPerfectPayout[denom] || 0;
               if (notesNeeded <= 0) return null;
               return (
-                <div key={denom} className="bg-indigo-700/50 border border-indigo-500/30 rounded-xl p-3 flex flex-col justify-between">
-                  <span className="text-[10px] font-bold text-indigo-200">
+                <div key={denom} className="bg-white/10 border border-white/20 rounded-xl p-3 flex flex-col justify-between backdrop-blur-xs dark:bg-slate-900/40 dark:border-slate-800">
+                  <span className="text-[10px] font-bold text-rose-100">
                     {selectedCurrency.symbol}
                     {denom} Notes
                   </span>
-                  <span className="text-xl font-bold font-mono text-white mt-1">
+                  <span className="text-xl font-black font-mono text-white mt-1">
                     {notesNeeded} <span className="text-xs font-normal">bills</span>
                   </span>
-                  <span className="text-[10px] text-indigo-200 mt-0.5">
+                  <span className="text-[10px] text-rose-100 mt-0.5">
                     Value: {formatCurrency(notesNeeded * denom, selectedCurrency.symbol)}
                   </span>
                 </div>
@@ -219,12 +222,12 @@ export default function DistributionReport({
       )}
 
       {/* 3. Detailed Distribution breakdown */}
-      <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm" id="breakdown-details-card">
+      <div className="bg-gradient-to-br from-rose-50/60 to-amber-50/30 rounded-2xl p-6 border border-rose-100 shadow-3xs dark:from-slate-900 dark:to-slate-950 dark:border-slate-800" id="breakdown-details-card">
         {/* Header toolbar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
           <div>
-            <h2 className="font-display font-semibold text-gray-900 text-lg">Staff Payout Breakdown</h2>
-            <p className="text-xs text-gray-500">
+            <h2 className="font-display font-extrabold text-rose-950 dark:text-white text-base tracking-tight">Staff Payout Breakdown</h2>
+            <p className="text-[11px] text-rose-700 dark:text-slate-400 font-medium">
               Review and adjust notes assigned to each functionary using <b>{isEquivalentMode ? 'Equivalent Division' : 'Greedy Division'}</b>{ensureAllDenominations ? ' with ' : ''}<b>{ensureAllDenominations ? 'Variety Mode (All Denominations)' : ''}</b>.
             </p>
           </div>
@@ -233,44 +236,44 @@ export default function DistributionReport({
             {hasAnyOverrides && (
               <button
                 onClick={onClearOverrides}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-xs font-semibold border border-rose-100 transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-xl text-xs font-bold border border-rose-200/50 transition-all cursor-pointer shadow-3xs dark:bg-rose-950/40 dark:hover:bg-rose-950/70 dark:text-rose-350 dark:border-rose-900/60"
                 id="reset-overrides-btn"
               >
-                <RefreshCw className="w-3.5 h-3.5" />
+                <RefreshCw className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
                 Reset Adjustments
               </button>
             )}
             <button
               onClick={handleCopyText}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg text-xs font-semibold text-gray-600 transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-rose-50 border border-rose-100 rounded-xl text-xs font-bold text-rose-800 transition-all cursor-pointer shadow-3xs dark:bg-slate-800 dark:hover:bg-slate-700 dark:border-slate-700 dark:text-slate-250"
               id="copy-report-btn"
             >
               {copied ? (
                 <>
-                  <Check className="w-3.5 h-3.5 text-emerald-500" />
-                  <span className="text-emerald-500">Copied!</span>
+                  <Check className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+                  <span className="text-rose-600 dark:text-rose-400">Copied!</span>
                 </>
               ) : (
                 <>
-                  <Clipboard className="w-3.5 h-3.5" />
+                  <Clipboard className="w-3.5 h-3.5 text-rose-500 dark:text-rose-450" />
                   Copy Summary
                 </>
               )}
             </button>
             <button
               onClick={handleExportCSV}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg text-xs font-semibold text-gray-600 transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-rose-50 border border-rose-100 rounded-xl text-xs font-bold text-rose-800 transition-all cursor-pointer shadow-3xs dark:bg-slate-800 dark:hover:bg-slate-700 dark:border-slate-700 dark:text-slate-250"
               id="export-csv-btn"
             >
-              <Download className="w-3.5 h-3.5" />
+              <Download className="w-3.5 h-3.5 text-rose-500 dark:text-rose-450" />
               CSV Export
             </button>
             <button
               onClick={handlePrint}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-3xs transition-all cursor-pointer dark:bg-rose-700 dark:hover:bg-rose-600"
               id="print-slips-btn"
             >
-              <Printer className="w-3.5 h-3.5" />
+              <Printer className="w-3.5 h-3.5 text-rose-150" />
               Print Receipts
             </button>
           </div>
@@ -293,10 +296,10 @@ export default function DistributionReport({
                 billTokens.push(
                   <div
                     key={denom}
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold font-mono border ${getBillColor(denom)}`}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black font-mono border ${getBillColor(denom)}`}
                   >
                     <span>{selectedCurrency.symbol}{denom}</span>
-                    <span className="opacity-50 font-sans">×</span>
+                    <span className="opacity-40 font-sans font-bold">×</span>
                     <span>{count}</span>
                   </div>
                 );
@@ -306,10 +309,10 @@ export default function DistributionReport({
             return (
               <div
                 key={f.id}
-                className={`border rounded-xl transition-all ${
+                className={`border rounded-2xl transition-all ${
                   isExpanded
-                    ? 'border-indigo-200 bg-indigo-50/10 shadow-xs'
-                    : 'border-gray-200 bg-gray-50/40 hover:bg-gray-50/80'
+                    ? 'border-rose-200 bg-gradient-to-br from-rose-50/40 to-amber-50/20 shadow-2xs dark:border-rose-900/60 dark:from-slate-850 dark:to-slate-900/70'
+                    : 'border-rose-100/60 bg-white/85 hover:bg-white/95 shadow-3xs dark:border-slate-800 dark:bg-slate-900/80 dark:hover:bg-slate-900'
                 }`}
                 id={`alloc-card-${f.id}`}
               >
@@ -333,56 +336,58 @@ export default function DistributionReport({
                     </div>
 
                     <div>
-                      <h4 className="text-xs font-semibold text-gray-900 flex items-center gap-1.5">
+                      <h4 className="text-xs font-bold text-rose-950 dark:text-white flex items-center gap-1.5 font-display">
                         {f.name}
                         {isOverridden && (
-                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded-full border border-amber-200">
-                            <Lock className="w-2.5 h-2.5" /> Customized
+                          <span className="inline-flex items-center gap-0.5 text-[9px] font-black bg-amber-150 text-amber-900 px-2 py-0.5 rounded-full border border-amber-200 shadow-3xs dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-900/60">
+                            <Lock className="w-2.5 h-2.5 text-amber-750 dark:text-amber-400" /> Customized
                           </span>
                         )}
                       </h4>
-                      <div className="text-[10px] text-gray-400 mt-0.5 flex gap-2">
-                        <span>Target: <b>{formatCurrency(f.amount, selectedCurrency.symbol)}</b></span>
+                      <div className="text-[10px] text-rose-600/70 dark:text-slate-400 mt-0.5 flex gap-2 font-semibold">
+                        <span>Pensions: <b className="text-rose-900 dark:text-rose-450 font-mono">{f.pensions || 1}</b></span>
                         <span>•</span>
-                        <span>Paid: <b className={alloc.status === 'fully_paid' ? 'text-emerald-600' : 'text-gray-600'}>{formatCurrency(alloc.allocatedAmount, selectedCurrency.symbol)}</b></span>
+                        <span>Target: <b className="text-rose-900 dark:text-rose-450 font-mono">{formatCurrency(f.amount, selectedCurrency.symbol)}</b></span>
+                        <span>•</span>
+                        <span>Paid: <b className={alloc.status === 'fully_paid' ? 'text-emerald-600 dark:text-emerald-450 font-mono font-bold' : 'text-rose-900 dark:text-rose-450 font-mono'}>{formatCurrency(alloc.allocatedAmount, selectedCurrency.symbol)}</b></span>
                       </div>
                     </div>
                   </div>
 
                   {/* Notes List Tokens */}
                   <div className="flex-1 md:max-w-md lg:max-w-xl flex flex-wrap gap-1.5 items-center md:justify-end">
-                    {billTokens.length > 0 ? billTokens : <span className="text-[10px] text-gray-400 font-medium">No notes allocated</span>}
+                    {billTokens.length > 0 ? billTokens : <span className="text-[10px] text-rose-400 dark:text-rose-500 font-bold">No notes allocated</span>}
                   </div>
 
                   {/* Expand button */}
                   <div className="flex items-center gap-2 no-print">
-                    <button className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-all px-2.5 py-1 rounded bg-white hover:bg-gray-100 border border-gray-200 shadow-2xs cursor-pointer">
+                    <button className="text-xs font-bold text-rose-700 hover:text-rose-900 hover:bg-rose-50/50 transition-all px-2.5 py-1.5 rounded-lg bg-white border border-rose-200 shadow-3xs cursor-pointer dark:bg-slate-850 dark:border-slate-700 dark:text-slate-300 dark:hover:text-slate-100">
                       {isExpanded ? 'Collapse' : 'Adjust'}
                     </button>
-                    {isExpanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                    {isExpanded ? <ChevronUp className="w-4 h-4 text-rose-400 dark:text-rose-500" /> : <ChevronDown className="w-4 h-4 text-rose-400 dark:text-rose-500" />}
                   </div>
                 </div>
 
                 {/* Expanded adjustment form */}
                 {isExpanded && (
-                  <div className="px-4 pb-5 pt-3 border-t border-gray-200 bg-gray-50/70 rounded-b-xl no-print">
+                  <div className="px-4 pb-5 pt-3 border-t border-rose-100 bg-rose-50/20 rounded-b-2xl no-print dark:border-slate-800 dark:bg-slate-950/20">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-1">
-                        <Sliders className="w-3.5 h-3.5 text-indigo-500" />
-                        <span className="text-xs font-bold text-gray-700">Denomination Tuning:</span>
+                        <Sliders className="w-3.5 h-3.5 text-rose-500 dark:text-rose-405" />
+                        <span className="text-xs font-extrabold text-rose-900 dark:text-white font-display">Denomination Tuning:</span>
                       </div>
-                      <div className="text-xs">
-                        <span className="text-gray-500">Payout Status:</span>{' '}
+                      <div className="text-xs font-bold text-rose-950 dark:text-slate-300">
+                        <span className="text-rose-600/70 dark:text-slate-450 font-medium">Payout Status:</span>{' '}
                         {alloc.allocatedAmount === f.amount ? (
-                          <span className="text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded">
+                          <span className="text-emerald-700 dark:text-emerald-300 font-extrabold bg-emerald-50 dark:bg-emerald-950/45 px-2.5 py-1 rounded-lg border border-emerald-100 dark:border-emerald-900/55">
                             Perfect Match
                           </span>
                         ) : alloc.allocatedAmount > f.amount ? (
-                          <span className="text-indigo-600 font-bold bg-indigo-50 px-2 py-0.5 rounded">
+                          <span className="text-rose-700 dark:text-rose-300 font-extrabold bg-rose-50 dark:bg-rose-950/45 px-2.5 py-1 rounded-lg border border-rose-150 dark:border-rose-900/55">
                             Over-allocated (+{formatCurrency(alloc.allocatedAmount - f.amount, selectedCurrency.symbol)})
                           </span>
                         ) : (
-                          <span className="text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded">
+                          <span className="text-amber-700 dark:text-amber-300 font-extrabold bg-amber-50 dark:bg-amber-950/45 px-2.5 py-1 rounded-lg border border-amber-150 dark:border-amber-900/55">
                             Shortfall (-{formatCurrency(f.amount - alloc.allocatedAmount, selectedCurrency.symbol)})
                           </span>
                         )}
@@ -393,8 +398,8 @@ export default function DistributionReport({
                       {denominations.map(denom => {
                         const count = alloc.notes[denom] || 0;
                         return (
-                          <div key={denom} className="bg-white p-2 rounded-lg border border-gray-200 flex flex-col items-center">
-                            <span className="text-[10px] font-bold text-gray-500 mb-1">
+                          <div key={denom} className="bg-white p-2 rounded-xl border border-rose-100 flex flex-col items-center dark:bg-slate-900 dark:border-slate-800">
+                            <span className="text-[10px] font-bold text-rose-500/80 dark:text-rose-400/85 mb-1 font-mono">
                               {selectedCurrency.symbol}{denom}
                             </span>
                             <input
@@ -403,14 +408,14 @@ export default function DistributionReport({
                               value={count || ''}
                               placeholder="0"
                               onChange={e => handleOverrideNoteChange(f.id, denom, e.target.value)}
-                              className="w-full text-center px-1 py-1 text-xs font-mono font-bold border border-gray-200 rounded focus:outline-none focus:border-indigo-500"
+                              className="w-full text-center px-1 py-1 text-xs font-mono font-black border border-rose-100 dark:border-slate-800 rounded-md focus:outline-none focus:border-rose-500 dark:focus:border-rose-700 bg-rose-50/20 dark:bg-slate-950 text-rose-950 dark:text-white"
                             />
                           </div>
                         );
                       })}
                     </div>
 
-                    <div className="flex items-center justify-between mt-4 text-[10px] text-gray-500 border-t border-gray-200 pt-3">
+                    <div className="flex items-center justify-between mt-4 text-[10px] text-rose-600/80 dark:text-slate-400 border-t border-rose-100 dark:border-slate-800 pt-3 font-semibold">
                       <p>
                         💡 Adjust counts manually to customize the bills. 
                         This locks this user's allocation and auto-recalculates all other staff payouts using the remaining drawer.
@@ -418,7 +423,7 @@ export default function DistributionReport({
                       {isOverridden && (
                         <button
                           onClick={() => onUpdateOverride(f.id, null)}
-                          className="text-indigo-600 font-semibold hover:underline cursor-pointer"
+                          className="text-rose-600 dark:text-rose-400 font-bold hover:text-rose-800 dark:hover:text-rose-300 underline cursor-pointer"
                         >
                           Unlock & Reset to Auto
                         </button>
@@ -455,14 +460,18 @@ export default function DistributionReport({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 text-xs">
+              <div className="grid grid-cols-3 gap-4 text-xs">
                 <div>
                   <span className="text-[10px] text-slate-400 block font-semibold uppercase">Paid To (Functionary):</span>
                   <span className="font-bold text-slate-800 text-sm">{f.name}</span>
                 </div>
+                <div className="text-center">
+                  <span className="text-[10px] text-slate-400 block font-semibold uppercase">No of Pensions:</span>
+                  <span className="font-bold text-slate-700 text-sm block">{f.pensions || 1}</span>
+                </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 block font-semibold uppercase">Target Share:</span>
-                  <span className="font-mono text-slate-700">{formatCurrency(f.amount, selectedCurrency.symbol)}</span>
+                  <span className="text-[10px] text-slate-400 block font-semibold uppercase text-right">Target Share:</span>
+                  <span className="font-mono text-slate-700 text-sm text-right block">{formatCurrency(f.amount, selectedCurrency.symbol)}</span>
                 </div>
               </div>
 

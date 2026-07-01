@@ -9,6 +9,7 @@ export interface Functionary {
   id: string;
   name: string;
   amount: number;
+  pensions?: number;
 }
 
 export interface DenominationStock {
@@ -42,24 +43,6 @@ export const PRESET_CURRENCIES: Currency[] = [
     code: 'INR',
     symbol: '₹',
     name: 'Indian Rupee',
-    denominations: [500, 200, 100, 50, 20, 10, 5, 2, 1],
-  },
-  {
-    code: 'USD',
-    symbol: '$',
-    name: 'US Dollar',
-    denominations: [100, 50, 20, 10, 5, 2, 1],
-  },
-  {
-    code: 'EUR',
-    symbol: '€',
-    name: 'Euro',
-    denominations: [500, 200, 100, 50, 20, 10, 5, 2, 1],
-  },
-  {
-    code: 'GBP',
-    symbol: '£',
-    name: 'British Pound',
-    denominations: [50, 20, 10, 5, 2, 1],
+    denominations: [500, 200, 100, 50, 20, 10, 5],
   },
 ];

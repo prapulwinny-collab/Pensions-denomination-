@@ -230,7 +230,7 @@ export function calculateDistribution(
  * Format currency amount cleanly
  */
 export function formatCurrency(amount: number, symbol: string): string {
-  return `${symbol}${amount.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+  return `${symbol}${amount.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 }
 
 /**
@@ -279,6 +279,7 @@ export function generateShareableSummary(
 
     const statusIcon = alloc.status === 'fully_paid' ? '✅' : alloc.status === 'partially_paid' ? '⚠️' : '❌';
     text += `\n${idx + 1}. *${f.name}*\n`;
+    text += `   • Pensions: ${f.pensions || 1}\n`;
     text += `   • Target: ${formatCurrency(f.amount, currencySymbol)}\n`;
     text += `   • Paid: ${formatCurrency(alloc.allocatedAmount, currencySymbol)} ${statusIcon}\n`;
     
@@ -305,21 +306,21 @@ export function generateShareableSummary(
  */
 export function getSampleFunctionaries(): Functionary[] {
   return [
-    { id: '1', name: 'Arjun Sharma', amount: 12500 },
-    { id: '2', name: 'Priya Patel', amount: 8400 },
-    { id: '3', name: 'Rajesh Kumar', amount: 15000 },
-    { id: '4', name: 'Ananya Rao', amount: 6200 },
-    { id: '5', name: 'Vikram Singh', amount: 11000 },
-    { id: '6', name: 'Sneha Reddy', amount: 9500 },
-    { id: '7', name: 'Amit Verma', amount: 14300 },
-    { id: '8', name: 'Kiran Nair', amount: 5500 },
-    { id: '9', name: 'Deepa Joshi', amount: 10800 },
-    { id: '10', name: 'Sanjay Gupta', amount: 13200 },
-    { id: '11', name: 'Neha Das', amount: 7800 },
-    { id: '12', name: 'Rohan Mehta', amount: 11500 },
-    { id: '13', name: 'Kavitha Swamy', amount: 9000 },
-    { id: '14', name: 'Manoj Pillai', amount: 12000 },
-    { id: '15', name: 'Sunita Sen', amount: 6800 },
+    { id: '1', name: 'Arjun Sharma', amount: 12500, pensions: 1 },
+    { id: '2', name: 'Priya Patel', amount: 8400, pensions: 2 },
+    { id: '3', name: 'Rajesh Kumar', amount: 15000, pensions: 1 },
+    { id: '4', name: 'Ananya Rao', amount: 6200, pensions: 3 },
+    { id: '5', name: 'Vikram Singh', amount: 11000, pensions: 1 },
+    { id: '6', name: 'Sneha Reddy', amount: 9500, pensions: 1 },
+    { id: '7', name: 'Amit Verma', amount: 14300, pensions: 2 },
+    { id: '8', name: 'Kiran Nair', amount: 5500, pensions: 1 },
+    { id: '9', name: 'Deepa Joshi', amount: 10800, pensions: 1 },
+    { id: '10', name: 'Sanjay Gupta', amount: 13200, pensions: 2 },
+    { id: '11', name: 'Neha Das', amount: 7800, pensions: 1 },
+    { id: '12', name: 'Rohan Mehta', amount: 11500, pensions: 1 },
+    { id: '13', name: 'Kavitha Swamy', amount: 9000, pensions: 1 },
+    { id: '14', name: 'Manoj Pillai', amount: 12000, pensions: 2 },
+    { id: '15', name: 'Sunita Sen', amount: 6800, pensions: 1 },
   ];
 }
 
@@ -333,8 +334,6 @@ export function getSampleStock(code: string): DenominationStock {
       20: 200,
       10: 300,
       5: 500,
-      2: 200,
-      1: 500,
     };
   }
   if (code === 'USD') {
@@ -344,8 +343,6 @@ export function getSampleStock(code: string): DenominationStock {
       20: 50,
       10: 100,
       5: 100,
-      2: 50,
-      1: 200,
     };
   }
   return {
@@ -356,7 +353,5 @@ export function getSampleStock(code: string): DenominationStock {
     20: 50,
     10: 100,
     5: 200,
-    2: 100,
-    1: 200,
   };
 }
