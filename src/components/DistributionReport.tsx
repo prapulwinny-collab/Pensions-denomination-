@@ -464,14 +464,14 @@ export default function DistributionReport({
 
         {/* Elegant Schedule Table */}
         <div className="border border-slate-300 rounded-xl overflow-hidden mt-4">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse table-fixed">
             <thead>
               <tr className="bg-slate-100 text-[9px] font-extrabold uppercase text-slate-700 border-b border-slate-300">
-                <th className="py-2 px-4">Staff / Functionary</th>
-                <th className="py-2 px-3 text-center">Pensions</th>
-                <th className="py-2 px-3 text-right">Target Share</th>
-                <th className="py-2 px-3 text-right">Allocated Amt</th>
-                <th className="py-2 px-4 text-center">Denomination Breakdown</th>
+                <th className="py-2 px-4 w-[22%]">Staff / Functionary</th>
+                <th className="py-2 px-3 text-center w-[8%]">Pensions</th>
+                <th className="py-2 px-3 text-right w-[15%]">Target Share</th>
+                <th className="py-2 px-3 text-right w-[15%]">Allocated Amt</th>
+                <th className="py-2 px-4 text-center w-[40%]">Denomination Breakdown</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 text-[11px]">
@@ -479,24 +479,32 @@ export default function DistributionReport({
                 const alloc = summary.allocations[f.id];
                 if (!alloc) return null;
 
-                const breakdown = denominations
-                  .map(d => {
-                    const count = alloc.notes[d] || 0;
-                    return count > 0 ? `${selectedCurrency.symbol}${d}×${count}` : null;
-                  })
-                  .filter(Boolean)
-                  .join(', ');
+                const hasNotes = Object.entries(alloc.notes).some(([_, count]) => count > 0);
 
                 return (
                   <tr key={f.id} className="hover:bg-slate-50/50">
-                    <td className="py-2.5 px-4 font-bold text-slate-800">{f.name}</td>
+                    <td className="py-2.5 px-4 font-bold text-slate-800 break-words">{f.name}</td>
                     <td className="py-2.5 px-3 text-center font-semibold text-slate-600">{f.pensions || 1}</td>
                     <td className="py-2.5 px-3 text-right font-mono text-slate-700">{formatCurrency(f.amount, selectedCurrency.symbol)}</td>
                     <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-900">{formatCurrency(alloc.allocatedAmount, selectedCurrency.symbol)}</td>
                     <td className="py-2.5 px-4 text-center">
-                      <span className="inline-block bg-slate-50 border border-slate-200 px-2 py-0.5 rounded text-[10px] font-mono text-slate-700 max-w-[280px] truncate">
-                        {breakdown || 'None'}
-                      </span>
+                      <div className="flex flex-wrap gap-1 justify-center">
+                        {denominations.map(denom => {
+                          const count = alloc.notes[denom] || 0;
+                          if (count <= 0) return null;
+                          return (
+                            <span
+                              key={denom}
+                              className="inline-block bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded text-[9px] font-mono text-slate-700 whitespace-nowrap"
+                            >
+                              {selectedCurrency.symbol}{denom}×{count}
+                            </span>
+                          );
+                        })}
+                        {!hasNotes && (
+                          <span className="text-[10px] text-slate-400 font-mono italic">None</span>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
