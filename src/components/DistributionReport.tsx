@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Sliders, Clipboard, Printer, RefreshCw, AlertTriangle, CheckCircle2, Check, Download, ChevronDown, ChevronUp, Lock, Unlock, HelpCircle } from 'lucide-react';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 import { Currency, DistributionSummary, Functionary, PayoutAllocation } from '../types';
 import { formatCurrency, generateShareableSummary, formatDateDDMMYYYY } from '../utils';
 
@@ -28,8 +30,70 @@ export default function DistributionReport({
 }: DistributionReportProps) {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [pdfProgress, setPdfProgress] = useState('');
 
   const denominations = selectedCurrency.denominations;
+
+  const handleDownloadPDF = async () => {
+    try {
+      setIsGeneratingPDF(true);
+      setPdfProgress('Preparing...');
+      
+      // Wait a moment for React to render the off-screen elements
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+        compress: true,
+      });
+
+      // 1. Capture Page 1: Detailed Schedule
+      setPdfProgress('Rendering Schedule...');
+      const scheduleEl = document.getElementById('pdf-page-schedule');
+      if (!scheduleEl) throw new Error('Schedule page element not found');
+
+      const canvasSchedule = await html2canvas(scheduleEl, {
+        scale: 2, // 2x scale for crisp font rendering
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+      });
+      const imgSchedule = canvasSchedule.toDataURL('image/jpeg', 0.95);
+      pdf.addImage(imgSchedule, 'JPEG', 0, 0, 210, 297);
+
+      // 2. Capture Page 2+: Slips
+      const activeFunctionaries = functionaries.filter(f => f.amount > 0);
+      const totalSlipPages = Math.ceil(activeFunctionaries.length / 3);
+
+      for (let i = 0; i < totalSlipPages; i++) {
+        setPdfProgress(`Receipts ${i + 1}/${totalSlipPages}...`);
+        const slipsEl = document.getElementById(`pdf-page-receipts-${i}`);
+        if (!slipsEl) continue;
+
+        const canvasSlips = await html2canvas(slipsEl, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#ffffff',
+        });
+        const imgSlips = canvasSlips.toDataURL('image/jpeg', 0.95);
+        pdf.addPage();
+        pdf.addImage(imgSlips, 'JPEG', 0, 0, 210, 297);
+      }
+
+      setPdfProgress('Saving...');
+      pdf.save(`Cash_Distribution_Report_${selectedCurrency.code}_${formatDateDDMMYYYY().replace(/\//g, '-')}.pdf`);
+    } catch (err) {
+      console.error('PDF Generation failed:', err);
+      alert('An error occurred while generating the PDF. Please try again or use the print function.');
+    } finally {
+      setIsGeneratingPDF(false);
+      setPdfProgress('');
+    }
+  };
 
   const handleCopyText = () => {
     const text = generateShareableSummary(summary, functionaries, denominations, selectedCurrency.symbol, isUnlimited, isEquivalentMode, ensureAllDenominations);
@@ -271,6 +335,19 @@ export default function DistributionReport({
               CSV Export
             </button>
             <button
+              onClick={handleDownloadPDF}
+              disabled={isGeneratingPDF}
+              className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold shadow-3xs transition-all cursor-pointer ${
+                isGeneratingPDF
+                  ? 'bg-amber-100 border border-amber-200 text-amber-800 cursor-not-allowed dark:bg-amber-950/40 dark:border-amber-900/40 dark:text-amber-300'
+                  : 'bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white'
+              }`}
+              id="download-pdf-btn"
+            >
+              <Download className={`w-3.5 h-3.5 ${isGeneratingPDF ? 'animate-bounce' : 'text-white'}`} />
+              {isGeneratingPDF ? pdfProgress : 'Download PDF'}
+            </button>
+            <button
               onClick={handlePrint}
               className="flex items-center gap-1.5 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-3xs transition-all cursor-pointer dark:bg-rose-700 dark:hover:bg-rose-600"
               id="print-slips-btn"
@@ -481,26 +558,49 @@ export default function DistributionReport({
 
                 const hasNotes = Object.entries(alloc.notes).some(([_, count]) => count > 0);
 
+                const activeDenoms = denominations.filter(denom => (alloc.notes[denom] || 0) > 0);
+                const midPoint = Math.ceil(activeDenoms.length / 2);
+                const line1 = activeDenoms.slice(0, midPoint);
+                const line2 = activeDenoms.slice(midPoint);
+
                 return (
                   <tr key={f.id} className="hover:bg-slate-50/50">
-                    <td className="py-2.5 px-4 font-bold text-slate-800 break-words">{f.name}</td>
-                    <td className="py-2.5 px-3 text-center font-semibold text-slate-600">{f.pensions || 1}</td>
-                    <td className="py-2.5 px-3 text-right font-mono text-slate-700">{formatCurrency(f.amount, selectedCurrency.symbol)}</td>
-                    <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-900">{formatCurrency(alloc.allocatedAmount, selectedCurrency.symbol)}</td>
-                    <td className="py-2.5 px-4 text-center">
-                      <div className="flex flex-wrap gap-1 justify-center">
-                        {denominations.map(denom => {
-                          const count = alloc.notes[denom] || 0;
-                          if (count <= 0) return null;
-                          return (
-                            <span
-                              key={denom}
-                              className="inline-block bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded text-[9px] font-mono text-slate-700 whitespace-nowrap"
-                            >
-                              {selectedCurrency.symbol}{denom}×{count}
-                            </span>
-                          );
-                        })}
+                    <td className="py-1.5 px-4 font-bold text-slate-800 break-words">{f.name}</td>
+                    <td className="py-1.5 px-3 text-center font-semibold text-slate-600">{f.pensions || 1}</td>
+                    <td className="py-1.5 px-3 text-right font-mono text-slate-700">{formatCurrency(f.amount, selectedCurrency.symbol)}</td>
+                    <td className="py-1.5 px-3 text-right font-mono font-bold text-slate-900">{formatCurrency(alloc.allocatedAmount, selectedCurrency.symbol)}</td>
+                    <td className="py-1.5 px-4 text-center">
+                      <div className="flex flex-col gap-0.5 items-center justify-center">
+                        {line1.length > 0 && (
+                          <div className="flex flex-wrap gap-1 justify-center">
+                            {line1.map(denom => {
+                              const count = alloc.notes[denom] || 0;
+                              return (
+                                <span
+                                  key={denom}
+                                  className="inline-block bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded text-[9px] font-mono text-slate-700 whitespace-nowrap"
+                                >
+                                  {selectedCurrency.symbol}{denom}×{count}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        )}
+                        {line2.length > 0 && (
+                          <div className="flex flex-wrap gap-1 justify-center">
+                            {line2.map(denom => {
+                              const count = alloc.notes[denom] || 0;
+                              return (
+                                <span
+                                  key={denom}
+                                  className="inline-block bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded text-[9px] font-mono text-slate-700 whitespace-nowrap"
+                                >
+                                  {selectedCurrency.symbol}{denom}×{count}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        )}
                         {!hasNotes && (
                           <span className="text-[10px] text-slate-400 font-mono italic">None</span>
                         )}
@@ -614,6 +714,202 @@ export default function DistributionReport({
           ));
         })()}
       </div>
+
+      {/* Off-screen high-fidelity PDF capture container */}
+      {isGeneratingPDF && (
+        <div className="pdf-capture-container" id="pdf-capture-container">
+          {/* Page 1: Detailed Schedule */}
+          <div className="pdf-page bg-white p-8 text-black" id="pdf-page-schedule">
+            <div className="flex justify-between items-center border-b-2 border-slate-800 pb-3 mb-6">
+              <div>
+                <h1 className="font-display font-extrabold text-lg text-slate-900 uppercase tracking-tight">
+                  Detailed Staff Payout Schedule
+                </h1>
+                <p className="text-[10px] text-slate-500 font-mono mt-0.5">
+                  Report Generated: {formatDateDDMMYYYY()}
+                </p>
+              </div>
+              <div className="text-right text-[10px]">
+                <span className="font-bold text-slate-700">Allocation Mode: </span>
+                <span className="font-semibold text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                  {isEquivalentMode ? 'Equivalent Division' : 'Greedy Division'}
+                </span>
+              </div>
+            </div>
+
+            <div className="border border-slate-300 rounded-xl overflow-hidden mt-4">
+              <table className="w-full text-left border-collapse table-fixed">
+                <thead>
+                  <tr className="bg-slate-100 text-[9px] font-extrabold uppercase text-slate-700 border-b border-slate-300">
+                    <th className="py-2 px-4 w-[22%] text-slate-700">Staff / Functionary</th>
+                    <th className="py-2 px-3 text-center w-[8%] text-slate-700">Pensions</th>
+                    <th className="py-2 px-3 text-right w-[15%] text-slate-700">Target Share</th>
+                    <th className="py-2 px-3 text-right w-[15%] text-slate-700">Allocated Amt</th>
+                    <th className="py-2 px-4 text-center w-[40%] text-slate-700">Denomination Breakdown</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 text-[11px]">
+                  {functionaries.filter(f => f.amount > 0).map(f => {
+                    const alloc = summary.allocations[f.id];
+                    if (!alloc) return null;
+
+                    const hasNotes = Object.entries(alloc.notes).some(([_, count]) => count > 0);
+
+                    const activeDenoms = denominations.filter(denom => (alloc.notes[denom] || 0) > 0);
+                    const midPoint = Math.ceil(activeDenoms.length / 2);
+                    const line1 = activeDenoms.slice(0, midPoint);
+                    const line2 = activeDenoms.slice(midPoint);
+
+                    return (
+                      <tr key={f.id} className="bg-white">
+                        <td className="py-1.5 px-4 font-bold text-slate-800 break-words">{f.name}</td>
+                        <td className="py-1.5 px-3 text-center font-semibold text-slate-600">{f.pensions || 1}</td>
+                        <td className="py-1.5 px-3 text-right font-mono text-slate-700">{formatCurrency(f.amount, selectedCurrency.symbol)}</td>
+                        <td className="py-1.5 px-3 text-right font-mono font-bold text-slate-900">{formatCurrency(alloc.allocatedAmount, selectedCurrency.symbol)}</td>
+                        <td className="py-1.5 px-4 text-center">
+                          <div className="flex flex-col gap-0.5 items-center justify-center">
+                            {line1.length > 0 && (
+                              <div className="flex flex-wrap gap-1 justify-center">
+                                {line1.map(denom => {
+                                  const count = alloc.notes[denom] || 0;
+                                  return (
+                                    <span
+                                      key={denom}
+                                      className="inline-block bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded text-[9px] font-mono text-slate-700 whitespace-nowrap"
+                                    >
+                                      {selectedCurrency.symbol}{denom}×{count}
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            )}
+                            {line2.length > 0 && (
+                              <div className="flex flex-wrap gap-1 justify-center">
+                                {line2.map(denom => {
+                                  const count = alloc.notes[denom] || 0;
+                                  return (
+                                    <span
+                                      key={denom}
+                                      className="inline-block bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded text-[9px] font-mono text-slate-700 whitespace-nowrap"
+                                    >
+                                      {selectedCurrency.symbol}{denom}×{count}
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            )}
+                            {!hasNotes && (
+                              <span className="text-[10px] text-slate-400 font-mono italic">None</span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+
+              <div className="p-3 bg-slate-50 border-t border-slate-300 flex justify-between items-center text-[10px] text-slate-500">
+                <div>
+                  <p className="font-semibold text-slate-600">Total Payout Fulfilled: <span className="font-bold text-slate-800 font-mono">{formatCurrency(summary.totalAllocated, selectedCurrency.symbol)}</span></p>
+                </div>
+                <div>
+                  <p className="font-mono">Payout Schedule</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Page 2+: Slips */}
+          {(() => {
+            const activeFunctionaries = functionaries.filter(f => f.amount > 0);
+            const chunks: Functionary[][] = [];
+            for (let i = 0; i < activeFunctionaries.length; i += 3) {
+              chunks.push(activeFunctionaries.slice(i, i + 3));
+            }
+
+            return chunks.map((chunk, pageIndex) => (
+              <div key={pageIndex} className="pdf-receipt-page bg-white p-6 text-black" id={`pdf-page-receipts-${pageIndex}`}>
+                {chunk.map((f, i) => {
+                  const globalIndex = pageIndex * 3 + i;
+                  const alloc = summary.allocations[f.id];
+                  if (!alloc) return null;
+
+                  return (
+                    <div key={f.id} className="pdf-print-card bg-white p-4">
+                      {/* Header */}
+                      <div className="flex justify-between items-start border-b border-dashed border-slate-300 pb-2">
+                        <div>
+                          <h3 className="font-display font-bold text-sm text-slate-900">CASH PAYOUT RECEIPT</h3>
+                          <p className="text-[9px] text-slate-500 font-mono">Slip #{globalIndex + 1} • {formatDateDDMMYYYY()}</p>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider">Amount Paid</span>
+                          <p className="text-base font-bold font-mono text-slate-900">{formatCurrency(alloc.allocatedAmount, selectedCurrency.symbol)}</p>
+                        </div>
+                      </div>
+
+                      {/* Details Grid */}
+                      <div className="grid grid-cols-3 gap-2 text-[11px] pt-1">
+                        <div>
+                          <span className="text-[9px] text-slate-400 block font-semibold uppercase">Paid To (Functionary):</span>
+                          <span className="font-bold text-slate-800">{f.name}</span>
+                        </div>
+                        <div className="text-center">
+                          <span className="text-[9px] text-slate-400 block font-semibold uppercase">No of Pensions:</span>
+                          <span className="font-bold text-slate-700 block">{f.pensions || 1}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[9px] text-slate-400 block font-semibold uppercase">Target Share:</span>
+                          <span className="font-mono text-slate-700 block">{formatCurrency(f.amount, selectedCurrency.symbol)}</span>
+                        </div>
+                      </div>
+
+                      {/* Breakdown Box */}
+                      <div className="bg-slate-50 p-2 rounded border border-slate-200 my-1">
+                        <span className="text-[9px] font-bold text-slate-500 block uppercase mb-1">Denomination Breakdown:</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {denominations.map(denom => {
+                            const count = alloc.notes[denom] || 0;
+                            if (count <= 0) return null;
+                            return (
+                              <span key={denom} className="inline-block px-2 py-0.5 bg-white border border-slate-200 text-[10px] font-mono font-bold rounded text-slate-800">
+                                {selectedCurrency.symbol}{denom} × {count} = {formatCurrency(count * denom, selectedCurrency.symbol)}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Return lines */}
+                      <div className="border-t border-dashed border-slate-200 pt-2 flex flex-wrap gap-x-6 gap-y-1 text-[11px]">
+                        <div className="flex items-center gap-1">
+                          <span className="font-semibold text-slate-700">Number of undisbursed pensions:</span>
+                          <span className="font-mono text-slate-400">______</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="font-semibold text-slate-700">Returned amount:</span>
+                          <span className="font-mono text-slate-400">________________________</span>
+                        </div>
+                      </div>
+
+                      {/* Signatures */}
+                      <div className="grid grid-cols-2 gap-8 pt-5 text-[10px]">
+                        <div className="border-t border-slate-300 pt-1 text-center text-slate-500">
+                          Authorized Signatory
+                        </div>
+                        <div className="border-t border-slate-300 pt-1 text-center text-slate-500">
+                          Receiver's Signature
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ));
+          })()}
+        </div>
+      )}
     </div>
   );
 }
