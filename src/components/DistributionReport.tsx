@@ -490,6 +490,17 @@ export default function DistributionReport({
                 </div>
               </div>
 
+              <div className="border-t border-dashed border-slate-300 pt-3 flex flex-wrap gap-x-8 gap-y-2 text-xs">
+                <div className="flex items-center gap-1">
+                  <span className="font-semibold text-slate-700">Number of undisbursed pensions:</span>
+                  <span className="font-mono text-slate-400">______</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="font-semibold text-slate-700">Returned amount:</span>
+                  <span className="font-mono text-slate-400">________________________</span>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-10 pt-8 text-xs">
                 <div className="border-t border-slate-300 pt-2 text-center text-slate-500">
                   Authorized Signatory
