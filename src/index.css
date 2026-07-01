@@ -37,22 +37,32 @@
     padding-top: 0 !important;
   }
 
-  /* Each receipt page container holding exactly 3 receipts */
-  .receipt-page {
+  /* A4 size print page container with elegant page borders */
+  .print-page, .receipt-page {
     page-break-after: always !important;
     break-after: page !important;
-    height: 282mm !important; /* maximum print height for A4 with 6mm top/bottom margin */
+    height: 283mm !important; /* fits A4 with 6mm margins perfectly */
+    width: 100% !important;
+    border: 1.5mm double #1e293b !important; /* highly elegant, professional document page border */
+    padding: 6mm 8mm !important;
+    box-sizing: border-box !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: flex-start !important;
-    gap: 6mm !important;
-    box-sizing: border-box !important;
-    padding: 0 !important;
-    margin: 0 !important;
+    margin: 0 0 10mm 0 !important; /* spacing in developer screen preview, ignored in print pagination */
+    background-color: white !important;
+    color: black !important;
+  }
+
+  /* Specific spacing/gaps for receipts page which holds exactly 3 cards */
+  .receipt-page {
+    gap: 4mm !important;
+    justify-content: space-between !important;
+    padding: 5mm 6mm !important; /* slightly tighter padding to fit cards perfectly */
   }
 
   /* Avoid trailing blank page */
-  .receipt-page:last-child {
+  .print-page:last-child, .receipt-page:last-child {
     page-break-after: avoid !important;
     break-after: avoid !important;
   }
@@ -60,10 +70,10 @@
   /* Receipt Card styled to fit 3 per page exactly */
   .print-card {
     page-break-inside: avoid;
-    height: 88mm !important;
+    height: 85mm !important;
     box-sizing: border-box !important;
     border: 1.5px dashed #475569 !important; /* clean dashed lines for cutting */
-    padding: 4.5mm 6mm !important;
+    padding: 4mm 5mm !important;
     border-radius: 8px !important;
     background-color: transparent !important;
     color: black !important;

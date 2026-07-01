@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Plus, Trash2, Save, Upload, RefreshCw, X } from 'lucide-react';
 import { Currency, Functionary } from '../types';
-import { formatCurrency, getSampleFunctionaries } from '../utils';
+import { formatCurrency, getSampleFunctionaries, formatDateDDMMYYYY } from '../utils';
 
 interface FunctionaryListProps {
   selectedCurrency: Currency;
@@ -360,7 +360,7 @@ export default function FunctionaryList({
 
     const newTemplate = {
       name: templateName.trim(),
-      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      date: formatDateDDMMYYYY(),
       list: functionaries,
     };
 

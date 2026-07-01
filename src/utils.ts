@@ -245,7 +245,7 @@ export function generateShareableSummary(
   isEquivalentMode: boolean = false,
   ensureAllDenominations: boolean = true
 ): string {
-  const dateStr = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const dateStr = formatDateDDMMYYYY();
   let text = `💵 *Cash Distribution Summary - ${dateStr}*\n`;
   text += `-------------------------------------------\n`;
   text += `🎯 Total Payouts: ${formatCurrency(summary.totalTargetPayout, currencySymbol)}\n`;
@@ -355,3 +355,11 @@ export function getSampleStock(code: string): DenominationStock {
     5: 200,
   };
 }
+
+export function formatDateDDMMYYYY(date: Date = new Date()): string {
+  const dd = String(date.getDate()).padStart(2, '0');
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const yyyy = date.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+}
+

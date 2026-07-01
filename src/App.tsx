@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Coins, ShieldCheck, Mail, Calendar, Sparkles, Sun, Moon } from 'lucide-react';
 import { Currency, DenominationStock, Functionary, PayoutAllocation } from './types';
-import { calculateDistribution, getSampleFunctionaries, getSampleStock } from './utils';
+import { calculateDistribution, getSampleFunctionaries, getSampleStock, formatDateDDMMYYYY } from './utils';
 
 // Import our modular components
 import CurrencySelector from './components/CurrencySelector';
@@ -105,7 +105,7 @@ export default function App() {
           <div className="flex items-center gap-3 text-xs font-bold text-slate-600 dark:text-slate-300">
             <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/60 shadow-3xs dark:bg-slate-800/80 dark:border-slate-700/60 dark:text-slate-200">
               <Calendar className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
-              <span className="font-display">{new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+              <span className="font-display">{formatDateDDMMYYYY()}</span>
             </div>
             <div className="hidden md:flex items-center gap-1.5 bg-indigo-50/75 text-indigo-800 px-3 py-1.5 rounded-lg border border-indigo-100 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-900/60">
               <Mail className="w-3.5 h-3.5 text-indigo-500" />

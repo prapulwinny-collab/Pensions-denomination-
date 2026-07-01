@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Sliders, Clipboard, Printer, RefreshCw, AlertTriangle, CheckCircle2, Check, Download, ChevronDown, ChevronUp, Lock, Unlock, HelpCircle } from 'lucide-react';
 import { Currency, DistributionSummary, Functionary, PayoutAllocation } from '../types';
-import { formatCurrency, generateShareableSummary } from '../utils';
+import { formatCurrency, generateShareableSummary, formatDateDDMMYYYY } from '../utils';
 
 interface DistributionReportProps {
   selectedCurrency: Currency;
@@ -108,8 +108,10 @@ export default function DistributionReport({
   const hasAnyOverrides = Object.keys(manualOverrides).length > 0;
 
   return (
-    <div className="space-y-6" id="distribution-report-container">
-      {/* 1. Metric Cards Row */}
+    <div id="distribution-report-container">
+      {/* On-Screen Interactive Report (Hidden in print) */}
+      <div className="space-y-6 no-print">
+        {/* 1. Metric Cards Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4" id="metrics-row">
         <div className="bg-gradient-to-br from-amber-50 to-amber-100/40 p-5 rounded-2xl border border-amber-100 shadow-3xs dark:from-slate-900 dark:to-slate-950 dark:border-slate-800">
           <span className="text-[10px] font-extrabold text-amber-700/80 uppercase tracking-widest block font-display dark:text-amber-450">
@@ -437,6 +439,199 @@ export default function DistributionReport({
         </div>
       </div>
 
+      {/* Close the On-Screen Interactive Report wrapper */}
+      </div>
+
+      {/* Print Page 1: Executive Summary & Bank Checklist (Hidden on screen, styled for ISO A4 print) */}
+      <div className="hidden print:block print-only print-page" id="printable-summary-page">
+        {/* Header */}
+        <div className="flex justify-between items-center border-b-2 border-slate-800 pb-3 mb-6">
+          <div>
+            <h1 className="font-display font-extrabold text-lg text-slate-900 uppercase tracking-tight">
+              Cash Payout Summary Report
+            </h1>
+            <p className="text-[10px] text-slate-500 font-mono mt-0.5">
+              Report Generated: {formatDateDDMMYYYY()}
+            </p>
+          </div>
+          <div className="text-right">
+            <span className="text-[9px] uppercase font-extrabold text-slate-500 tracking-wider block">Currency Code</span>
+            <span className="font-mono text-xs font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+              {selectedCurrency.code} ({selectedCurrency.symbol})
+            </span>
+          </div>
+        </div>
+
+        {/* Metric Cards Grid for Print */}
+        <div className="grid grid-cols-4 gap-4 mb-6">
+          <div className="border border-slate-300 p-4 rounded-xl flex flex-col justify-between">
+            <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block">
+              Target Payout Total
+            </span>
+            <span className="text-lg font-black text-slate-900 font-display mt-1 block">
+              {formatCurrency(totalPayout, selectedCurrency.symbol)}
+            </span>
+            <span className="text-[9px] text-slate-500 font-medium block mt-0.5">
+              {functionaries.length} Staff Members
+            </span>
+          </div>
+
+          <div className="border border-slate-300 p-4 rounded-xl flex flex-col justify-between">
+            <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block">
+              Allocated Cash
+            </span>
+            <span className="text-lg font-black text-slate-900 font-display mt-1 block">
+              {formatCurrency(summary.totalAllocated, selectedCurrency.symbol)}
+            </span>
+            <span className="text-[9px] text-slate-500 font-medium block mt-0.5">
+              {totalPayout > 0 ? `${Math.round((summary.totalAllocated / totalPayout) * 100)}% Fulfilled` : '0%'}
+            </span>
+          </div>
+
+          <div className="border border-slate-300 p-4 rounded-xl flex flex-col justify-between">
+            <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block">
+              Leftover in Drawer
+            </span>
+            <span className="text-lg font-black text-slate-900 font-display mt-1 block">
+              {formatCurrency(summary.unallocatedCash, selectedCurrency.symbol)}
+            </span>
+            <span className="text-[9px] text-slate-500 font-medium block mt-0.5">
+              Change remaining
+            </span>
+          </div>
+
+          <div className="border border-slate-300 p-4 rounded-xl flex flex-col justify-between">
+            <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block">
+              Cash Shortfall
+            </span>
+            <span className={`text-lg font-black font-display mt-1 block ${summary.unpaidPayout > 0 ? 'text-rose-700' : 'text-slate-500'}`}>
+              {formatCurrency(summary.unpaidPayout, selectedCurrency.symbol)}
+            </span>
+            <span className="text-[9px] text-slate-500 font-medium block mt-0.5">
+              Unsatisfied amount
+            </span>
+          </div>
+        </div>
+
+        {/* Bank Checklist / Note Breakdown for Print */}
+        <div className="border border-slate-300 rounded-xl p-5 bg-slate-50/50 flex-1 flex flex-col justify-between">
+          <div>
+            <h3 className="font-display font-black text-xs text-slate-800 border-b border-slate-200 pb-2 mb-4 uppercase tracking-wider">
+              🏦 Bank Cash Withdrawal Checklist
+            </h3>
+            <p className="text-xs text-slate-600 mb-4 font-medium">
+              Take this checklist to your bank teller to withdraw the exact denominations required for perfect, error-free physical cash distribution.
+            </p>
+
+            <div className="grid grid-cols-3 gap-3">
+              {denominations.map(denom => {
+                const notesNeeded = summary.notesNeededForPerfectPayout[denom] || 0;
+                if (notesNeeded <= 0) return null;
+                return (
+                  <div key={denom} className="bg-white border border-slate-200 shadow-3xs rounded-lg p-2.5 flex flex-col justify-between">
+                    <span className="text-[9px] font-bold text-slate-500 uppercase font-mono">
+                      {selectedCurrency.symbol}{denom} Notes
+                    </span>
+                    <span className="text-base font-black font-mono text-slate-900 mt-0.5">
+                      {notesNeeded} <span className="text-[10px] font-normal text-slate-500">bills</span>
+                    </span>
+                    <span className="text-[9px] text-slate-500 mt-0.5 font-mono">
+                      Value: {formatCurrency(notesNeeded * denom, selectedCurrency.symbol)}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Bottom Footer block of Page 1 */}
+          <div className="border-t border-slate-200 pt-4 mt-6 grid grid-cols-2 gap-8 text-[11px] text-slate-500">
+            <div>
+              <p className="font-bold text-slate-700">Reporting Officer Signature</p>
+              <div className="border-b border-slate-300 h-8 w-44 mt-1"></div>
+            </div>
+            <div className="text-right">
+              <p className="font-bold text-slate-700">Date of Audit Verification</p>
+              <p className="font-mono mt-3 text-slate-800 font-bold">{formatDateDDMMYYYY()}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Print Page 2: Detailed Staff Payout Schedule (Hidden on screen, styled for ISO A4 print) */}
+      <div className="hidden print:block print-only print-page" id="printable-schedule-page">
+        {/* Header */}
+        <div className="flex justify-between items-center border-b-2 border-slate-800 pb-3 mb-6">
+          <div>
+            <h1 className="font-display font-extrabold text-lg text-slate-900 uppercase tracking-tight">
+              Detailed Staff Payout Schedule
+            </h1>
+            <p className="text-[10px] text-slate-500 font-mono mt-0.5">
+              Report Generated: {formatDateDDMMYYYY()}
+            </p>
+          </div>
+          <div className="text-right text-[10px]">
+            <span className="font-bold text-slate-700">Allocation Mode: </span>
+            <span className="font-semibold text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+              {isEquivalentMode ? 'Equivalent Division' : 'Greedy Division'}
+            </span>
+          </div>
+        </div>
+
+        {/* Elegant Schedule Table */}
+        <div className="border border-slate-300 rounded-xl overflow-hidden flex-1 flex flex-col justify-between">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-100 text-[9px] font-extrabold uppercase text-slate-700 border-b border-slate-300">
+                <th className="py-2 px-4">Staff / Functionary</th>
+                <th className="py-2 px-3 text-center">Pensions</th>
+                <th className="py-2 px-3 text-right">Target Share</th>
+                <th className="py-2 px-3 text-right">Allocated Amt</th>
+                <th className="py-2 px-4 text-center">Denomination Breakdown</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200 text-[11px]">
+              {functionaries.filter(f => f.amount > 0).map(f => {
+                const alloc = summary.allocations[f.id];
+                if (!alloc) return null;
+
+                const breakdown = denominations
+                  .map(d => {
+                    const count = alloc.notes[d] || 0;
+                    return count > 0 ? `${selectedCurrency.symbol}${d}×${count}` : null;
+                  })
+                  .filter(Boolean)
+                  .join(', ');
+
+                return (
+                  <tr key={f.id} className="hover:bg-slate-50/50">
+                    <td className="py-2.5 px-4 font-bold text-slate-800">{f.name}</td>
+                    <td className="py-2.5 px-3 text-center font-semibold text-slate-600">{f.pensions || 1}</td>
+                    <td className="py-2.5 px-3 text-right font-mono text-slate-700">{formatCurrency(f.amount, selectedCurrency.symbol)}</td>
+                    <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-900">{formatCurrency(alloc.allocatedAmount, selectedCurrency.symbol)}</td>
+                    <td className="py-2.5 px-4 text-center">
+                      <span className="inline-block bg-slate-50 border border-slate-200 px-2 py-0.5 rounded text-[10px] font-mono text-slate-700 max-w-[280px] truncate">
+                        {breakdown || 'None'}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+
+          {/* Footer block for Page 2 */}
+          <div className="p-3 bg-slate-50 border-t border-slate-300 flex justify-between items-center text-[10px] text-slate-500">
+            <div>
+              <p className="font-semibold text-slate-600">Total Payout Fulfilled: <span className="font-bold text-slate-800 font-mono">{formatCurrency(summary.totalAllocated, selectedCurrency.symbol)}</span></p>
+            </div>
+            <div>
+              <p className="font-mono">Page 2 of 2</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* 4. Beautiful Printable Payout Slips (Hidden in normal screen, styled for print only) */}
       <div className="hidden print:block print-only receipts-container" id="printable-slips-container">
         {(() => {
@@ -459,7 +654,7 @@ export default function DistributionReport({
                     <div className="flex justify-between items-start border-b border-dashed border-slate-300 pb-2">
                       <div>
                         <h3 className="font-display font-bold text-sm text-slate-800">CASH PAYOUT RECEIPT</h3>
-                        <p className="text-[9px] text-slate-500 font-mono">Slip #{globalIndex + 1} • {new Date().toLocaleDateString()}</p>
+                        <p className="text-[9px] text-slate-500 font-mono">Slip #{globalIndex + 1} • {formatDateDDMMYYYY()}</p>
                       </div>
                       <div className="text-right">
                         <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider">Amount Paid</span>
