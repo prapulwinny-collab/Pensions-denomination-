@@ -40,8 +40,17 @@ export default function DistributionReport({
       setIsGeneratingPDF(true);
       setPdfProgress('Preparing...');
       
-      // Wait a moment for React to render the off-screen elements
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Wait dynamically for elements to render in the DOM
+      let scheduleEl: HTMLElement | null = null;
+      for (let attempt = 0; attempt < 15; attempt++) {
+        scheduleEl = document.getElementById('pdf-page-schedule');
+        if (scheduleEl) break;
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
+      if (!scheduleEl) {
+        throw new Error('Detailed Payout Schedule page element not found in DOM.');
+      }
 
       const pdf = new jsPDF({
         orientation: 'portrait',
@@ -52,15 +61,42 @@ export default function DistributionReport({
 
       // 1. Capture Page 1: Detailed Schedule
       setPdfProgress('Rendering Schedule...');
-      const scheduleEl = document.getElementById('pdf-page-schedule');
-      if (!scheduleEl) throw new Error('Schedule page element not found');
+      
+      // Force scroll layout reset to guarantee zero offset
+      const originalScrollX = window.scrollX;
+      const originalScrollY = window.scrollY;
+      window.scrollTo(0, 0);
 
-      const canvasSchedule = await html2canvas(scheduleEl, {
-        scale: 2, // 2x scale for crisp font rendering
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-      });
+      let canvasSchedule;
+      try {
+        canvasSchedule = await html2canvas(scheduleEl, {
+          scale: 2, // 2x scale for crisp font rendering
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#ffffff',
+          width: 794,
+          height: 1123,
+          windowWidth: 794,
+          windowHeight: 1123,
+          scrollX: 0,
+          scrollY: 0,
+        });
+      } catch (e) {
+        console.warn('html2canvas failed with scale 2, trying fallback scale 1...', e);
+        canvasSchedule = await html2canvas(scheduleEl, {
+          scale: 1,
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#ffffff',
+          width: 794,
+          height: 1123,
+          windowWidth: 794,
+          windowHeight: 1123,
+          scrollX: 0,
+          scrollY: 0,
+        });
+      }
+
       const imgSchedule = canvasSchedule.toDataURL('image/jpeg', 0.95);
       pdf.addImage(imgSchedule, 'JPEG', 0, 0, 210, 297);
 
@@ -70,25 +106,62 @@ export default function DistributionReport({
 
       for (let i = 0; i < totalSlipPages; i++) {
         setPdfProgress(`Receipts ${i + 1}/${totalSlipPages}...`);
-        const slipsEl = document.getElementById(`pdf-page-receipts-${i}`);
-        if (!slipsEl) continue;
+        
+        let slipsEl: HTMLElement | null = null;
+        for (let attempt = 0; attempt < 15; attempt++) {
+          slipsEl = document.getElementById(`pdf-page-receipts-${i}`);
+          if (slipsEl) break;
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
 
-        const canvasSlips = await html2canvas(slipsEl, {
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          backgroundColor: '#ffffff',
-        });
+        if (!slipsEl) {
+          console.warn(`Receipt page pdf-page-receipts-${i} not found, skipping.`);
+          continue;
+        }
+
+        let canvasSlips;
+        try {
+          canvasSlips = await html2canvas(slipsEl, {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#ffffff',
+            width: 794,
+            height: 1123,
+            windowWidth: 794,
+            windowHeight: 1123,
+            scrollX: 0,
+            scrollY: 0,
+          });
+        } catch (e) {
+          console.warn(`html2canvas for page ${i} failed with scale 2, trying fallback scale 1...`, e);
+          canvasSlips = await html2canvas(slipsEl, {
+            scale: 1,
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#ffffff',
+            width: 794,
+            height: 1123,
+            windowWidth: 794,
+            windowHeight: 1123,
+            scrollX: 0,
+            scrollY: 0,
+          });
+        }
+
         const imgSlips = canvasSlips.toDataURL('image/jpeg', 0.95);
         pdf.addPage();
         pdf.addImage(imgSlips, 'JPEG', 0, 0, 210, 297);
       }
 
+      // Restore scroll
+      window.scrollTo(originalScrollX, originalScrollY);
+
       setPdfProgress('Saving...');
       pdf.save(`Cash_Distribution_Report_${selectedCurrency.code}_${formatDateDDMMYYYY().replace(/\//g, '-')}.pdf`);
     } catch (err) {
-      console.error('PDF Generation failed:', err);
-      alert('An error occurred while generating the PDF. Please try again or use the print function.');
+      console.error('PDF Generation failed with detailed error:', err);
+      alert(`An error occurred while generating the PDF: ${err instanceof Error ? err.message : String(err)}\n\nPlease try again or use the print function.`);
     } finally {
       setIsGeneratingPDF(false);
       setPdfProgress('');
