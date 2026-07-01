@@ -438,80 +438,94 @@ export default function DistributionReport({
       </div>
 
       {/* 4. Beautiful Printable Payout Slips (Hidden in normal screen, styled for print only) */}
-      <div className="hidden print:block print-only mt-10 space-y-8" id="printable-slips-container">
-        <h2 className="text-center font-display font-bold text-xl mb-6 pb-2 border-b-2 border-slate-800">
-          Monthly Cash Payout Receipts
-        </h2>
-        
-        {functionaries.filter(f => f.amount > 0).map((f, i) => {
-          const alloc = summary.allocations[f.id];
-          if (!alloc) return null;
+      <div className="hidden print:block print-only receipts-container" id="printable-slips-container">
+        {(() => {
+          const activeFunctionaries = functionaries.filter(f => f.amount > 0);
+          const chunks: Functionary[][] = [];
+          for (let i = 0; i < activeFunctionaries.length; i += 3) {
+            chunks.push(activeFunctionaries.slice(i, i + 3));
+          }
           
-          return (
-            <div key={f.id} className="print-card border border-slate-300 p-6 rounded-xl space-y-4 max-w-2xl mx-auto">
-              <div className="flex justify-between items-start border-b border-dashed border-slate-300 pb-3">
-                <div>
-                  <h3 className="font-display font-bold text-base text-slate-800">CASH PAYOUT RECEIPT</h3>
-                  <p className="text-[10px] text-slate-500">Slip #{i+1} • {new Date().toLocaleDateString()}</p>
-                </div>
-                <div className="text-right">
-                  <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Amount Paid</span>
-                  <p className="text-lg font-bold font-mono text-slate-900">{formatCurrency(alloc.allocatedAmount, selectedCurrency.symbol)}</p>
-                </div>
-              </div>
+          return chunks.map((chunk, pageIndex) => (
+            <div key={pageIndex} className="receipt-page">
+              {chunk.map((f, i) => {
+                const globalIndex = pageIndex * 3 + i;
+                const alloc = summary.allocations[f.id];
+                if (!alloc) return null;
+                
+                return (
+                  <div key={f.id} className="print-card">
+                    {/* Header */}
+                    <div className="flex justify-between items-start border-b border-dashed border-slate-300 pb-2">
+                      <div>
+                        <h3 className="font-display font-bold text-sm text-slate-800">CASH PAYOUT RECEIPT</h3>
+                        <p className="text-[9px] text-slate-500 font-mono">Slip #{globalIndex + 1} • {new Date().toLocaleDateString()}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider">Amount Paid</span>
+                        <p className="text-base font-bold font-mono text-slate-900">{formatCurrency(alloc.allocatedAmount, selectedCurrency.symbol)}</p>
+                      </div>
+                    </div>
 
-              <div className="grid grid-cols-3 gap-4 text-xs">
-                <div>
-                  <span className="text-[10px] text-slate-400 block font-semibold uppercase">Paid To (Functionary):</span>
-                  <span className="font-bold text-slate-800 text-sm">{f.name}</span>
-                </div>
-                <div className="text-center">
-                  <span className="text-[10px] text-slate-400 block font-semibold uppercase">No of Pensions:</span>
-                  <span className="font-bold text-slate-700 text-sm block">{f.pensions || 1}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] text-slate-400 block font-semibold uppercase text-right">Target Share:</span>
-                  <span className="font-mono text-slate-700 text-sm text-right block">{formatCurrency(f.amount, selectedCurrency.symbol)}</span>
-                </div>
-              </div>
+                    {/* Details Grid */}
+                    <div className="grid grid-cols-3 gap-2 text-[11px] pt-1">
+                      <div>
+                        <span className="text-[9px] text-slate-400 block font-semibold uppercase">Paid To (Functionary):</span>
+                        <span className="font-bold text-slate-850">{f.name}</span>
+                      </div>
+                      <div className="text-center">
+                        <span className="text-[9px] text-slate-400 block font-semibold uppercase">No of Pensions:</span>
+                        <span className="font-bold text-slate-700 block">{f.pensions || 1}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[9px] text-slate-400 block font-semibold uppercase">Target Share:</span>
+                        <span className="font-mono text-slate-700 block">{formatCurrency(f.amount, selectedCurrency.symbol)}</span>
+                      </div>
+                    </div>
 
-              <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
-                <span className="text-[10px] font-bold text-slate-500 block uppercase mb-1.5">Denomination Breakdown:</span>
-                <div className="flex flex-wrap gap-2">
-                  {denominations.map(denom => {
-                    const count = alloc.notes[denom] || 0;
-                    if (count <= 0) return null;
-                    return (
-                      <span key={denom} className="inline-block px-2.5 py-1 bg-white border border-slate-200 text-xs font-mono font-bold rounded">
-                        {selectedCurrency.symbol}{denom} × {count} = {formatCurrency(count * denom, selectedCurrency.symbol)}
-                      </span>
-                    );
-                  })}
-                </div>
-              </div>
+                    {/* Breakdown Box */}
+                    <div className="bg-slate-50/70 p-2 rounded border border-slate-200 my-1">
+                      <span className="text-[9px] font-bold text-slate-500 block uppercase mb-1">Denomination Breakdown:</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {denominations.map(denom => {
+                          const count = alloc.notes[denom] || 0;
+                          if (count <= 0) return null;
+                          return (
+                            <span key={denom} className="inline-block px-2 py-0.5 bg-white border border-slate-200 text-[10px] font-mono font-bold rounded">
+                              {selectedCurrency.symbol}{denom} × {count} = {formatCurrency(count * denom, selectedCurrency.symbol)}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
 
-              <div className="border-t border-dashed border-slate-300 pt-3 flex flex-wrap gap-x-8 gap-y-2 text-xs">
-                <div className="flex items-center gap-1">
-                  <span className="font-semibold text-slate-700">Number of undisbursed pensions:</span>
-                  <span className="font-mono text-slate-400">______</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="font-semibold text-slate-700">Returned amount:</span>
-                  <span className="font-mono text-slate-400">________________________</span>
-                </div>
-              </div>
+                    {/* Return lines */}
+                    <div className="border-t border-dashed border-slate-200 pt-2 flex flex-wrap gap-x-6 gap-y-1 text-[11px]">
+                      <div className="flex items-center gap-1">
+                        <span className="font-semibold text-slate-700">Number of undisbursed pensions:</span>
+                        <span className="font-mono text-slate-400">______</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="font-semibold text-slate-700">Returned amount:</span>
+                        <span className="font-mono text-slate-400">________________________</span>
+                      </div>
+                    </div>
 
-              <div className="grid grid-cols-2 gap-10 pt-8 text-xs">
-                <div className="border-t border-slate-300 pt-2 text-center text-slate-500">
-                  Authorized Signatory
-                </div>
-                <div className="border-t border-slate-300 pt-2 text-center text-slate-500">
-                  Receiver's Signature
-                </div>
-              </div>
+                    {/* Signatures */}
+                    <div className="grid grid-cols-2 gap-8 pt-5 text-[10px]">
+                      <div className="border-t border-slate-300 pt-1 text-center text-slate-500">
+                        Authorized Signatory
+                      </div>
+                      <div className="border-t border-slate-300 pt-1 text-center text-slate-500">
+                        Receiver's Signature
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          );
-        })}
+          ));
+        })()}
       </div>
     </div>
   );

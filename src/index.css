@@ -11,21 +11,65 @@
 
 /* Custom styles for printing */
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 6mm 8mm;
+  }
+
   body {
     background-color: white !important;
     color: black !important;
   }
+
   .no-print {
     display: none !important;
   }
+
   .print-only {
     display: block !important;
   }
+
+  /* Force fresh page for printable slips container */
+  .receipts-container {
+    page-break-before: always !important;
+    break-before: page !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+
+  /* Each receipt page container holding exactly 3 receipts */
+  .receipt-page {
+    page-break-after: always !important;
+    break-after: page !important;
+    height: 282mm !important; /* maximum print height for A4 with 6mm top/bottom margin */
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    gap: 6mm !important;
+    box-sizing: border-box !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Avoid trailing blank page */
+  .receipt-page:last-child {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+
+  /* Receipt Card styled to fit 3 per page exactly */
   .print-card {
     page-break-inside: avoid;
-    border: 1px solid #ccc !important;
-    margin-bottom: 1.5rem !important;
-    padding: 1.5rem !important;
-    border-radius: 0.5rem !important;
+    height: 88mm !important;
+    box-sizing: border-box !important;
+    border: 1.5px dashed #475569 !important; /* clean dashed lines for cutting */
+    padding: 4.5mm 6mm !important;
+    border-radius: 8px !important;
+    background-color: transparent !important;
+    color: black !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    box-shadow: none !important;
   }
 }
