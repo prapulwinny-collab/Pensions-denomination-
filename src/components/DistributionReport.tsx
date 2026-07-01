@@ -463,7 +463,7 @@ export default function DistributionReport({
         </div>
 
         {/* Elegant Schedule Table */}
-        <div className="border border-slate-300 rounded-xl overflow-hidden flex-1 flex flex-col justify-between">
+        <div className="border border-slate-300 rounded-xl overflow-hidden mt-4">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-100 text-[9px] font-extrabold uppercase text-slate-700 border-b border-slate-300">

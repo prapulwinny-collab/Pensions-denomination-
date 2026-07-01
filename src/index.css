@@ -13,12 +13,16 @@
 @media print {
   @page {
     size: A4 portrait;
-    margin: 6mm 8mm;
+    margin: 10mm !important;
   }
 
-  body {
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
     background-color: white !important;
     color: black !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .no-print {
@@ -37,28 +41,34 @@
     padding-top: 0 !important;
   }
 
-  /* A4 size print page container with elegant page borders */
+  /* A4 size print page container with elegant page borders.
+     Set height to 260mm to guarantee it fits safely within A4 printable area (277mm),
+     preventing any bottom-border overflow onto a blank page. */
   .print-page, .receipt-page {
     page-break-after: always !important;
     break-after: page !important;
-    height: 283mm !important; /* fits A4 with 6mm margins perfectly */
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    height: 260mm !important;
+    max-height: 260mm !important;
     width: 100% !important;
     border: 1.5mm double #1e293b !important; /* highly elegant, professional document page border */
-    padding: 6mm 8mm !important;
+    padding: 8mm 10mm !important;
     box-sizing: border-box !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: flex-start !important;
-    margin: 0 0 10mm 0 !important; /* spacing in developer screen preview, ignored in print pagination */
+    margin: 0 !important;
     background-color: white !important;
     color: black !important;
+    overflow: hidden !important;
   }
 
   /* Specific spacing/gaps for receipts page which holds exactly 3 cards */
   .receipt-page {
-    gap: 4mm !important;
-    justify-content: space-between !important;
-    padding: 5mm 6mm !important; /* slightly tighter padding to fit cards perfectly */
+    gap: 5mm !important;
+    justify-content: flex-start !important;
+    padding: 6mm 8mm !important;
   }
 
   /* Avoid trailing blank page */
@@ -69,11 +79,12 @@
 
   /* Receipt Card styled to fit 3 per page exactly */
   .print-card {
-    page-break-inside: avoid;
-    height: 85mm !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    height: 75mm !important;
     box-sizing: border-box !important;
     border: 1.5px dashed #475569 !important; /* clean dashed lines for cutting */
-    padding: 4mm 5mm !important;
+    padding: 5mm 6mm !important;
     border-radius: 8px !important;
     background-color: transparent !important;
     color: black !important;
