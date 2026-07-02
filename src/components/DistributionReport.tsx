@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Sliders, Clipboard, Printer, RefreshCw, AlertTriangle, CheckCircle2, Check, Download, ChevronDown, ChevronUp, Lock, Unlock, HelpCircle } from 'lucide-react';
 import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
 import { Currency, DistributionSummary, Functionary, PayoutAllocation } from '../types';
 import { formatCurrency, generateShareableSummary, formatDateDDMMYYYY } from '../utils';
 
@@ -15,131 +14,6 @@ interface DistributionReportProps {
   onClearOverrides: () => void;
   isEquivalentMode: boolean;
   ensureAllDenominations?: boolean;
-}
-
-const colorCache = new Map<string, string>();
-let canvasElement: HTMLCanvasElement | null = null;
-let canvasCtx: CanvasRenderingContext2D | null = null;
-
-function convertColorToRgb(colorStr: string): string {
-  if (!colorStr) return colorStr;
-  if (colorCache.has(colorStr)) {
-    return colorCache.get(colorStr)!;
-  }
-  
-  if (colorStr.includes('oklch')) {
-    try {
-      if (!canvasElement) {
-        canvasElement = document.createElement('canvas');
-        canvasElement.width = 1;
-        canvasElement.height = 1;
-        canvasCtx = canvasElement.getContext('2d');
-      }
-      if (canvasCtx) {
-        canvasCtx.fillStyle = 'rgba(0, 0, 0, 0)';
-        canvasCtx.fillStyle = colorStr;
-        const resolved = canvasCtx.fillStyle;
-        if (resolved && (resolved.startsWith('#') || resolved.startsWith('rgb') || resolved.startsWith('rgba'))) {
-          colorCache.set(colorStr, resolved);
-          return resolved;
-        }
-      }
-    } catch (e) {
-      console.warn('Canvas conversion failed for:', colorStr, e);
-    }
-    return 'rgb(71, 85, 105)';
-  }
-  return colorStr;
-}
-
-function patchWindowGetComputedStyle(win: any) {
-  try {
-    if (!win || win.__oklch_patched__) return;
-    win.__oklch_patched__ = true;
-    
-    const originalGetComputedStyle = win.getComputedStyle;
-    if (!originalGetComputedStyle) return;
-    
-    win.getComputedStyle = function (elt: any, pseudoElt: any) {
-      const style = originalGetComputedStyle(elt, pseudoElt);
-      if (!style) return style;
-      
-      return new Proxy(style, {
-        get(target, prop) {
-          if (typeof prop === 'string') {
-            if (prop === 'getPropertyValue') {
-              return function(propertyName: string) {
-                const val = target.getPropertyValue(propertyName);
-                if (val && typeof val === 'string' && val.includes('oklch')) {
-                  return convertColorToRgb(val);
-                }
-                return val;
-              };
-            }
-            
-            const val = Reflect.get(target, prop);
-            if (typeof val === 'function') {
-              return val.bind(target);
-            }
-            if (val && typeof val === 'string' && val.includes('oklch')) {
-              return convertColorToRgb(val);
-            }
-            return val;
-          }
-          return Reflect.get(target, prop);
-        }
-      });
-    };
-  } catch (e) {
-    console.warn('Failed to patch window getComputedStyle:', e);
-  }
-}
-
-function convertOklchToRgbInElementTree(root: HTMLElement) {
-  try {
-    const elements = [root, ...Array.from(root.querySelectorAll('*'))] as HTMLElement[];
-    const styleOverrides: Array<{ el: HTMLElement; prop: string; value: string }> = [];
-    
-    const colorProps = [
-      'backgroundColor',
-      'color',
-      'borderColor',
-      'borderTopColor',
-      'borderRightColor',
-      'borderBottomColor',
-      'borderLeftColor',
-      'outlineColor',
-      'fill',
-      'stroke'
-    ];
-    
-    for (const el of elements) {
-      if (!el || !el.style) continue;
-      
-      try {
-        const computed = window.getComputedStyle(el);
-        for (const prop of colorProps) {
-          const val = computed[prop as any];
-          if (val && typeof val === 'string' && val.includes('oklch')) {
-            const rgbVal = convertColorToRgb(val);
-            styleOverrides.push({ el, prop, value: rgbVal });
-          }
-        }
-      } catch (e) {
-        // Skip elements we can't access
-      }
-    }
-    
-    for (const override of styleOverrides) {
-      try {
-        override.el.style[override.prop as any] = override.value;
-      } catch (e) {
-        // Ignore setting error
-      }
-    }
-  } catch (err) {
-    console.warn('Error converting oklch styles in element tree:', err);
-  }
 }
 
 export default function DistributionReport({
@@ -161,281 +35,271 @@ export default function DistributionReport({
   const denominations = selectedCurrency.denominations;
 
   const handleDownloadPDF = async () => {
-    const tempStyles: HTMLStyleElement[] = [];
-    const originalDisabledSheets: { sheet: CSSStyleSheet; disabled: boolean }[] = [];
-    const originalScrollX = window.scrollX;
-    const originalScrollY = window.scrollY;
-
-    const originalContentWindowDescriptor = Object.getOwnPropertyDescriptor(HTMLIFrameElement.prototype, 'contentWindow');
-    const originalDefaultViewDescriptor = Object.getOwnPropertyDescriptor(Document.prototype, 'defaultView');
-    const originalGetComputedStyle = window.getComputedStyle;
-
-    const hadDarkClass = document.documentElement.classList.contains('dark');
-
     try {
-      if (hadDarkClass) {
-        document.documentElement.classList.remove('dark');
-      }
-
       setIsGeneratingPDF(true);
-      setPdfProgress('Preparing...');
+      setPdfProgress('Generating...');
 
-      // 1. Install our robust getComputedStyle dynamic OKLCH proxy patcher
-      patchWindowGetComputedStyle(window);
+      const pdfSym = selectedCurrency.symbol === '₹' ? 'Rs.' : (selectedCurrency.symbol.charCodeAt(0) > 127 ? selectedCurrency.code + ' ' : selectedCurrency.symbol);
+      const formatPdfCurrency = (amt: number) => {
+        return formatCurrency(amt, selectedCurrency.symbol).replace(selectedCurrency.symbol, pdfSym);
+      };
 
-      if (originalContentWindowDescriptor && originalContentWindowDescriptor.get) {
-        Object.defineProperty(HTMLIFrameElement.prototype, 'contentWindow', {
-          get() {
-            const win = originalContentWindowDescriptor.get!.call(this);
-            if (win) {
-              patchWindowGetComputedStyle(win);
-            }
-            return win;
-          },
-          configurable: true
-        });
-      }
-
-      if (originalDefaultViewDescriptor && originalDefaultViewDescriptor.get) {
-        Object.defineProperty(Document.prototype, 'defaultView', {
-          get() {
-            const win = originalDefaultViewDescriptor.get!.call(this);
-            if (win) {
-              patchWindowGetComputedStyle(win);
-            }
-            return win;
-          },
-          configurable: true
-        });
-      }
-
-      // Dynamic oklch polyfiller for html2canvas compatibility
-      try {
-        const tempEl = document.createElement('div');
-        tempEl.style.display = 'none';
-        document.body.appendChild(tempEl);
-
-        const resolveOklch = (oklchStr: string) => {
-          try {
-            tempEl.style.color = '';
-            tempEl.style.color = oklchStr;
-            const computed = getComputedStyle(tempEl).color;
-            return computed || oklchStr;
-          } catch (e) {
-            return oklchStr;
-          }
-        };
-
-        const sheets = Array.from(document.styleSheets) as CSSStyleSheet[];
-        for (const sheet of sheets) {
-          // Skip our temporary styles to avoid double processing
-          if (sheet.ownerNode && (sheet.ownerNode as HTMLElement).classList?.contains('temp-pdf-style')) {
-            continue;
-          }
-
-          try {
-            let rulesText = '';
-            const rules = Array.from(sheet.cssRules || []);
-            for (const rule of rules) {
-              rulesText += rule.cssText + '\n';
-            }
-
-            if (rulesText.includes('oklch')) {
-              const oklchRegex = /oklch\([^)]+\)/g;
-              const modifiedText = rulesText.replace(oklchRegex, (match) => {
-                return resolveOklch(match);
-              });
-
-              const styleEl = document.createElement('style');
-              styleEl.className = 'temp-pdf-style';
-              styleEl.innerHTML = modifiedText;
-              document.head.appendChild(styleEl);
-              tempStyles.push(styleEl);
-
-              originalDisabledSheets.push({ sheet, disabled: sheet.disabled });
-              sheet.disabled = true;
-            }
-          } catch (e) {
-            console.warn('Could not polyfill stylesheet:', e);
-          }
-        }
-
-        document.body.removeChild(tempEl);
-      } catch (polyfillErr) {
-        console.warn('oklch polyfill setup failed:', polyfillErr);
-      }
-      
-      // Wait dynamically for elements to render in the DOM
-      let scheduleEl: HTMLElement | null = null;
-      for (let attempt = 0; attempt < 15; attempt++) {
-        scheduleEl = document.getElementById('pdf-page-schedule');
-        if (scheduleEl) break;
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
-      
-      if (!scheduleEl) {
-        throw new Error('Detailed Payout Schedule page element not found in DOM.');
-      }
-
-      // Convert all oklch styles to rgb in the element tree recursively
-      convertOklchToRgbInElementTree(scheduleEl);
-
-      const pdf = new jsPDF({
+      const doc = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4',
         compress: true,
       });
 
-      // 1. Capture Page 1: Detailed Schedule
-      setPdfProgress('Rendering Schedule...');
-      
-      // Force scroll layout reset to guarantee zero offset
-      window.scrollTo(0, 0);
+      let pageNum = 1;
+      let currY = 20;
 
-      let canvasSchedule;
-      try {
-        canvasSchedule = await html2canvas(scheduleEl, {
-          scale: 2, // 2x scale for crisp font rendering
-          useCORS: true,
-          logging: false,
-          backgroundColor: '#ffffff',
-          width: 794,
-          height: 1123,
-          windowWidth: 794,
-          windowHeight: 1123,
-          scrollX: 0,
-          scrollY: 0,
-        });
-      } catch (e) {
-        console.warn('html2canvas failed with scale 2, trying fallback scale 1...', e);
-        canvasSchedule = await html2canvas(scheduleEl, {
-          scale: 1,
-          useCORS: true,
-          logging: false,
-          backgroundColor: '#ffffff',
-          width: 794,
-          height: 1123,
-          windowWidth: 794,
-          windowHeight: 1123,
-          scrollX: 0,
-          scrollY: 0,
-        });
-      }
-
-      const imgSchedule = canvasSchedule.toDataURL('image/jpeg', 0.95);
-      pdf.addImage(imgSchedule, 'JPEG', 0, 0, 210, 297);
-
-      // 2. Capture Page 2+: Slips
-      const activeFunctionaries = functionaries.filter(f => f.amount > 0);
-      const totalSlipPages = Math.ceil(activeFunctionaries.length / 3);
-
-      for (let i = 0; i < totalSlipPages; i++) {
-        setPdfProgress(`Receipts ${i + 1}/${totalSlipPages}...`);
+      // Header Helper for Schedule
+      const drawScheduleHeader = (pageNum: number) => {
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(16);
+        doc.setTextColor(0, 0, 0);
+        doc.text('DETAILED STAFF PAYOUT SCHEDULE', 15, currY);
         
-        let slipsEl: HTMLElement | null = null;
-        for (let attempt = 0; attempt < 15; attempt++) {
-          slipsEl = document.getElementById(`pdf-page-receipts-${i}`);
-          if (slipsEl) break;
-          await new Promise(resolve => setTimeout(resolve, 100));
+        doc.setFont('Helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(80, 80, 80);
+        doc.text(`Report Generated: ${formatDateDDMMYYYY()}`, 15, currY + 6);
+        doc.text(`Allocation Mode: ${isEquivalentMode ? 'Equivalent Division' : 'Greedy Division'}`, 15, currY + 11);
+        
+        if (pageNum > 1) {
+          doc.setFont('Helvetica', 'bold');
+          doc.text(`Page ${pageNum}`, 195, currY, { align: 'right' });
         }
+        
+        // horizontal line below header
+        doc.setDrawColor(0, 0, 0);
+        doc.setLineWidth(0.5);
+        doc.line(15, currY + 15, 195, currY + 15);
+        
+        currY += 22;
+      };
 
-        if (!slipsEl) {
-          console.warn(`Receipt page pdf-page-receipts-${i} not found, skipping.`);
-          continue;
+      const drawTableHeader = () => {
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(8);
+        doc.setTextColor(0, 0, 0);
+        
+        doc.text('STAFF / FUNCTIONARY', 15, currY);
+        doc.text('PENSIONS', 65, currY, { align: 'center' });
+        doc.text('TARGET SHARE', 100, currY, { align: 'right' });
+        doc.text('ALLOCATED AMT', 125, currY, { align: 'right' });
+        doc.text('DENOMINATION BREAKDOWN', 128, currY);
+        
+        doc.setLineWidth(0.3);
+        doc.line(15, currY + 2, 195, currY + 2);
+        currY += 7;
+      };
+
+      const activeFunctionaries = functionaries.filter(f => f.amount > 0);
+
+      drawScheduleHeader(pageNum);
+      drawTableHeader();
+
+      const lineSpacing = 4.5;
+
+      activeFunctionaries.forEach((f) => {
+        const alloc = summary.allocations[f.id];
+        if (!alloc) return;
+        
+        const activeDenoms = denominations.filter(denom => (alloc.notes[denom] || 0) > 0);
+        const breakdownStr = activeDenoms.length > 0 
+          ? activeDenoms.map(denom => `${pdfSym}${denom}×${alloc.notes[denom]}`).join(' , ')
+          : 'None';
+        
+        const wrappedBreakdown = doc.splitTextToSize(breakdownStr, 66);
+        const rowLines = Math.max(1, wrappedBreakdown.length);
+        const rowHeight = rowLines * lineSpacing + 2;
+        
+        if (currY + rowHeight > 275) {
+          doc.addPage();
+          pageNum++;
+          currY = 20;
+          drawScheduleHeader(pageNum);
+          drawTableHeader();
         }
-
-        // Convert all oklch styles to rgb in the receipts element tree recursively
-        convertOklchToRgbInElementTree(slipsEl);
-
-        let canvasSlips;
-        try {
-          canvasSlips = await html2canvas(slipsEl, {
-            scale: 2,
-            useCORS: true,
-            logging: false,
-            backgroundColor: '#ffffff',
-            width: 794,
-            height: 1123,
-            windowWidth: 794,
-            windowHeight: 1123,
-            scrollX: 0,
-            scrollY: 0,
-          });
-        } catch (e) {
-          console.warn(`html2canvas for page ${i} failed with scale 2, trying fallback scale 1...`, e);
-          canvasSlips = await html2canvas(slipsEl, {
-            scale: 1,
-            useCORS: true,
-            logging: false,
-            backgroundColor: '#ffffff',
-            width: 794,
-            height: 1123,
-            windowWidth: 794,
-            windowHeight: 1123,
-            scrollX: 0,
-            scrollY: 0,
-          });
+        
+        doc.setFont('Helvetica', 'normal');
+        doc.setFontSize(8.5);
+        doc.setTextColor(0, 0, 0);
+        
+        // Name
+        doc.text(f.name, 15, currY + 4);
+        
+        // Pensions
+        doc.text(String(f.pensions || 1), 65, currY + 4, { align: 'center' });
+        
+        // Target Share
+        doc.text(formatPdfCurrency(f.amount), 100, currY + 4, { align: 'right' });
+        
+        // Allocated
+        doc.text(formatPdfCurrency(alloc.allocatedAmount), 125, currY + 4, { align: 'right' });
+        
+        // Breakdown
+        for (let l = 0; l < wrappedBreakdown.length; l++) {
+          doc.text(wrappedBreakdown[l], 128, currY + 4 + (l * lineSpacing));
         }
+        
+        doc.setDrawColor(220, 220, 220);
+        doc.setLineWidth(0.1);
+        doc.line(15, currY + rowHeight, 195, currY + rowHeight);
+        
+        currY += rowHeight;
+      });
 
-        const imgSlips = canvasSlips.toDataURL('image/jpeg', 0.95);
-        pdf.addPage();
-        pdf.addImage(imgSlips, 'JPEG', 0, 0, 210, 297);
+      // Total row
+      const totalAllocated = activeFunctionaries.reduce((sum, f) => {
+        const alloc = summary.allocations[f.id];
+        return sum + (alloc ? alloc.allocatedAmount : 0);
+      }, 0);
+
+      if (currY + 12 > 275) {
+        doc.addPage();
+        pageNum++;
+        currY = 20;
+        drawScheduleHeader(pageNum);
       }
 
-      // Restore scroll
-      window.scrollTo(originalScrollX, originalScrollY);
+      currY += 2;
+      doc.setFont('Helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Total Payout Fulfilled:', 15, currY + 4);
+      doc.text(formatPdfCurrency(totalAllocated), 125, currY + 4, { align: 'right' });
+
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(0.4);
+      doc.line(15, currY + 7, 195, currY + 7);
+
+      // Slips rendering helper
+      const drawReceiptSlip = (f: Functionary, globalIndex: number, startY: number) => {
+        const alloc = summary.allocations[f.id];
+        if (!alloc) return;
+        
+        const slipHeight = 82;
+        const startX = 15;
+        const width = 180;
+        
+        doc.setDrawColor(0, 0, 0);
+        doc.setLineWidth(0.3);
+        doc.setLineDashPattern([2, 1.5], 0);
+        doc.rect(startX, startY, width, slipHeight);
+        doc.setLineDashPattern([], 0);
+        
+        const padX = startX + 5;
+        const padY = startY + 6;
+        
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(0, 0, 0);
+        doc.text('CASH PAYOUT RECEIPT', padX, padY);
+        
+        doc.setFont('Helvetica', 'normal');
+        doc.setFontSize(7.5);
+        doc.setTextColor(80, 80, 80);
+        doc.text(`Slip #${globalIndex + 1}  •  ${formatDateDDMMYYYY()}`, padX, padY + 4);
+        
+        doc.setFont('Helvetica', 'normal');
+        doc.setFontSize(7.5);
+        doc.setTextColor(80, 80, 80);
+        doc.text('AMOUNT PAID', startX + width - 5, padY, { align: 'right' });
+        
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        doc.text(formatPdfCurrency(alloc.allocatedAmount), startX + width - 5, padY + 5.5, { align: 'right' });
+        
+        doc.setDrawColor(180, 180, 180);
+        doc.setLineWidth(0.15);
+        doc.line(padX, padY + 7, startX + width - 5, padY + 7);
+        
+        const gridY = padY + 12;
+        doc.setFont('Helvetica', 'normal');
+        doc.setFontSize(7);
+        doc.setTextColor(100, 100, 100);
+        doc.text('PAID TO (FUNCTIONARY):', padX, gridY);
+        doc.text('NO OF PENSIONS:', padX + 70, gridY, { align: 'center' });
+        doc.text('TARGET SHARE:', startX + width - 5, gridY, { align: 'right' });
+        
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(8.5);
+        doc.setTextColor(0, 0, 0);
+        doc.text(f.name, padX, gridY + 4);
+        doc.text(String(f.pensions || 1), padX + 70, gridY + 4, { align: 'center' });
+        doc.text(formatPdfCurrency(f.amount), startX + width - 5, gridY + 4, { align: 'right' });
+        
+        const boxY = gridY + 7;
+        const boxHeight = 15;
+        doc.setDrawColor(0, 0, 0);
+        doc.setLineWidth(0.2);
+        doc.rect(padX, boxY, width - 10, boxHeight);
+        
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(7);
+        doc.setTextColor(0, 0, 0);
+        doc.text('DENOMINATION BREAKDOWN:', padX + 3, boxY + 3.5);
+        
+        const activeDenoms = denominations.filter(denom => (alloc.notes[denom] || 0) > 0);
+        const breakdownParts = activeDenoms.map(denom => {
+          const count = alloc.notes[denom] || 0;
+          return `${pdfSym}${denom} × ${count} = ${formatPdfCurrency(count * denom)}`;
+        });
+        
+        const breakdownFullStr = breakdownParts.length > 0 ? breakdownParts.join('   •   ') : 'None';
+        
+        doc.setFont('Helvetica', 'normal');
+        doc.setFontSize(7.5);
+        doc.setTextColor(0, 0, 0);
+        
+        const wrappedBreakdownBox = doc.splitTextToSize(breakdownFullStr, width - 16);
+        for (let l = 0; l < Math.min(2, wrappedBreakdownBox.length); l++) {
+          doc.text(wrappedBreakdownBox[l], padX + 3, boxY + 7.5 + (l * 3.5));
+        }
+        
+        const returnY = boxY + boxHeight + 4;
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.text('Number of undisbursed pensions: ______', padX, returnY);
+        doc.text('Returned amount: ________________________', padX + 75, returnY);
+        
+        const sigY = returnY + 11;
+        doc.setDrawColor(0, 0, 0);
+        doc.setLineWidth(0.25);
+        doc.line(padX + 5, sigY, padX + 55, sigY);
+        doc.line(startX + width - 60, sigY, startX + width - 10, sigY);
+        
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.text('Authorized Signatory', padX + 30, sigY + 3, { align: 'center' });
+        doc.text("Receiver's Signature", startX + width - 35, sigY + 3, { align: 'center' });
+      };
+
+      const slipsPerPage = 3;
+      const totalReceiptPages = Math.ceil(activeFunctionaries.length / slipsPerPage);
+
+      for (let pageIndex = 0; pageIndex < totalReceiptPages; pageIndex++) {
+        doc.addPage();
+        const startIdx = pageIndex * slipsPerPage;
+        const chunk = activeFunctionaries.slice(startIdx, startIdx + slipsPerPage);
+        
+        chunk.forEach((f, i) => {
+          const globalIndex = startIdx + i;
+          const slipStartY = 10 + (i * 87);
+          drawReceiptSlip(f, globalIndex, slipStartY);
+        });
+      }
 
       setPdfProgress('Saving...');
-      pdf.save(`Cash_Distribution_Report_${selectedCurrency.code}_${formatDateDDMMYYYY().replace(/\//g, '-')}.pdf`);
+      doc.save(`Cash_Distribution_Report_${selectedCurrency.code}_${formatDateDDMMYYYY().replace(/\//g, '-')}.pdf`);
     } catch (err) {
       console.error('PDF Generation failed with detailed error:', err);
       alert(`An error occurred while generating the PDF: ${err instanceof Error ? err.message : String(err)}\n\nPlease try again or use the print function.`);
     } finally {
-      // Restore scroll in case it didn't get restored
-      window.scrollTo(originalScrollX, originalScrollY);
-
-      // Clean up polyfilled style elements
-      for (const styleEl of tempStyles) {
-        if (styleEl.parentNode) {
-          styleEl.parentNode.removeChild(styleEl);
-        }
-      }
-      // Restore original stylesheets
-      for (const item of originalDisabledSheets) {
-        try {
-          item.sheet.disabled = item.disabled;
-        } catch (e) {
-          console.warn('Could not restore stylesheet state:', e);
-        }
-      }
-
-      // Restore prototype descriptors
-      if (originalContentWindowDescriptor) {
-        try {
-          Object.defineProperty(HTMLIFrameElement.prototype, 'contentWindow', originalContentWindowDescriptor);
-        } catch (e) {
-          console.warn('Failed to restore HTMLIFrameElement.prototype.contentWindow descriptor:', e);
-        }
-      }
-      if (originalDefaultViewDescriptor) {
-        try {
-          Object.defineProperty(Document.prototype, 'defaultView', originalDefaultViewDescriptor);
-        } catch (e) {
-          console.warn('Failed to restore Document.prototype.defaultView descriptor:', e);
-        }
-      }
-      try {
-        window.getComputedStyle = originalGetComputedStyle;
-        (window as any).__oklch_patched__ = false;
-      } catch (e) {
-        console.warn('Failed to restore main window getComputedStyle:', e);
-      }
-
-      if (hadDarkClass) {
-        document.documentElement.classList.add('dark');
-      }
-
       setIsGeneratingPDF(false);
       setPdfProgress('');
     }
@@ -1033,175 +897,6 @@ export default function DistributionReport({
           ));
         })()}
       </div>
-
-      {/* Off-screen high-fidelity PDF capture container */}
-      {isGeneratingPDF && (
-        <div className="pdf-capture-container" id="pdf-capture-container" style={{ backgroundColor: '#ffffff', color: '#000000' }}>
-          {/* Page 1: Detailed Schedule */}
-          <div className="pdf-page p-8 text-black" id="pdf-page-schedule" style={{ backgroundColor: '#ffffff', color: '#000000' }}>
-            <div className="flex justify-between items-center border-b border-black pb-3 mb-6 bg-white">
-              <div>
-                <h1 className="font-display font-extrabold text-lg text-black uppercase tracking-tight">
-                  Detailed Staff Payout Schedule
-                </h1>
-                <p className="text-[10px] text-black font-mono mt-0.5">
-                  Report Generated: {formatDateDDMMYYYY()}
-                </p>
-              </div>
-              <div className="text-right text-[10px] text-black">
-                <span className="font-bold">Allocation Mode: </span>
-                <span className="font-semibold text-black bg-white px-2 py-0.5 rounded border border-black">
-                  {isEquivalentMode ? 'Equivalent Division' : 'Greedy Division'}
-                </span>
-              </div>
-            </div>
-
-            <div className="border border-black rounded-xl overflow-hidden mt-4 bg-white">
-              <table className="w-full text-left border-collapse table-fixed bg-white">
-                <thead>
-                  <tr className="bg-white text-[9px] font-extrabold uppercase text-black border-b border-black">
-                    <th className="py-2 px-4 w-[22%] text-black">Staff / Functionary</th>
-                    <th className="py-2 px-3 text-center w-[8%] text-black">Pensions</th>
-                    <th className="py-2 px-3 text-right w-[15%] text-black">Target Share</th>
-                    <th className="py-2 px-3 text-right w-[15%] text-black">Allocated Amt</th>
-                    <th className="py-2 px-4 text-center w-[40%] text-black">Denomination Breakdown</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-black text-[11px] bg-white">
-                  {functionaries.filter(f => f.amount > 0).map(f => {
-                    const alloc = summary.allocations[f.id];
-                    if (!alloc) return null;
-
-                    const hasNotes = Object.entries(alloc.notes).some(([_, count]) => count > 0);
-                    const activeDenoms = denominations.filter(denom => (alloc.notes[denom] || 0) > 0);
-
-                    return (
-                      <tr key={f.id} className="bg-white text-black">
-                        <td className="py-1.5 px-4 font-bold text-black break-words">{f.name}</td>
-                        <td className="py-1.5 px-3 text-center font-semibold text-black">{f.pensions || 1}</td>
-                        <td className="py-1.5 px-3 text-right font-mono text-black">{formatCurrency(f.amount, selectedCurrency.symbol)}</td>
-                        <td className="py-1.5 px-3 text-right font-mono font-bold text-black">{formatCurrency(alloc.allocatedAmount, selectedCurrency.symbol)}</td>
-                        <td className="py-1.5 px-4 text-center bg-white">
-                          <div className="flex flex-wrap gap-x-2.5 gap-y-1 items-center justify-center bg-white text-[10px] font-mono text-black font-semibold">
-                            {activeDenoms.map((denom, idx) => {
-                              const count = alloc.notes[denom] || 0;
-                              return (
-                                <span key={denom} className="whitespace-nowrap">
-                                  {selectedCurrency.symbol}{denom}×{count}{idx < activeDenoms.length - 1 ? " ," : ""}
-                                </span>
-                              );
-                            })}
-                            {!hasNotes && (
-                              <span className="text-[10px] text-black font-mono italic">None</span>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-
-              <div className="p-3 bg-white border-t border-black flex justify-between items-center text-[10px] text-black">
-                <div>
-                  <p className="font-semibold text-black">Total Payout Fulfilled: <span className="font-bold text-black font-mono">{formatCurrency(summary.totalAllocated, selectedCurrency.symbol)}</span></p>
-                </div>
-                <div>
-                  <p className="font-mono text-black">Payout Schedule</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Page 2+: Slips */}
-          {(() => {
-            const activeFunctionaries = functionaries.filter(f => f.amount > 0);
-            const chunks: Functionary[][] = [];
-            for (let i = 0; i < activeFunctionaries.length; i += 3) {
-              chunks.push(activeFunctionaries.slice(i, i + 3));
-            }
-
-            return chunks.map((chunk, pageIndex) => (
-              <div key={pageIndex} className="pdf-receipt-page p-6 text-black" id={`pdf-page-receipts-${pageIndex}`} style={{ backgroundColor: '#ffffff', color: '#000000' }}>
-                {chunk.map((f, i) => {
-                  const globalIndex = pageIndex * 3 + i;
-                  const alloc = summary.allocations[f.id];
-                  if (!alloc) return null;
-
-                  return (
-                    <div key={f.id} className="pdf-print-card bg-transparent p-4 text-black border border-dashed border-black">
-                      {/* Header */}
-                      <div className="flex justify-between items-start border-b border-dashed border-black pb-2 bg-transparent">
-                        <div>
-                          <h3 className="font-display font-bold text-sm text-black bg-transparent">CASH PAYOUT RECEIPT</h3>
-                          <p className="text-[9px] text-black font-mono font-bold bg-transparent">Slip #{globalIndex + 1} • {formatDateDDMMYYYY()}</p>
-                        </div>
-                        <div className="text-right bg-transparent">
-                          <span className="text-[9px] uppercase font-bold text-black tracking-wider bg-transparent">Amount Paid</span>
-                          <p className="text-base font-bold font-mono text-black bg-transparent">{formatCurrency(alloc.allocatedAmount, selectedCurrency.symbol)}</p>
-                        </div>
-                      </div>
-
-                      {/* Details Grid */}
-                      <div className="grid grid-cols-3 gap-2 text-[11px] pt-1 bg-transparent">
-                        <div className="bg-transparent">
-                          <span className="text-[9px] text-black block font-bold uppercase bg-transparent">Paid To (Functionary):</span>
-                          <span className="font-bold text-black bg-transparent">{f.name}</span>
-                        </div>
-                        <div className="text-center bg-transparent">
-                          <span className="text-[9px] text-black block font-bold uppercase bg-transparent">No of Pensions:</span>
-                          <span className="font-bold text-black block bg-transparent">{f.pensions || 1}</span>
-                        </div>
-                        <div className="text-right bg-transparent">
-                          <span className="text-[9px] text-black block font-bold uppercase bg-transparent">Target Share:</span>
-                          <span className="font-mono text-black block bg-transparent">{formatCurrency(f.amount, selectedCurrency.symbol)}</span>
-                        </div>
-                      </div>
-
-                      {/* Breakdown Box */}
-                      <div className="bg-transparent p-2 rounded border border-black my-1">
-                        <span className="text-[9px] font-bold text-black block uppercase mb-1 bg-transparent">Denomination Breakdown:</span>
-                        <div className="flex flex-wrap gap-x-4 gap-y-1 bg-transparent text-[11px] font-mono font-bold text-black">
-                          {denominations.filter(denom => (alloc.notes[denom] || 0) > 0).map((denom, idx, arr) => {
-                            const count = alloc.notes[denom] || 0;
-                            return (
-                              <span key={denom} className="whitespace-nowrap bg-transparent">
-                                {selectedCurrency.symbol}{denom} × {count} = {formatCurrency(count * denom, selectedCurrency.symbol)}{idx < arr.length - 1 ? "   • " : ""}
-                              </span>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Return lines */}
-                      <div className="border-t border-dashed border-black pt-2 flex flex-wrap gap-x-6 gap-y-1 text-[11px] bg-transparent">
-                        <div className="flex items-center gap-1 bg-transparent">
-                          <span className="font-semibold text-black bg-transparent">Number of undisbursed pensions:</span>
-                          <span className="font-mono text-black bg-transparent">______</span>
-                        </div>
-                        <div className="flex items-center gap-1 bg-transparent">
-                          <span className="font-semibold text-black bg-transparent">Returned amount:</span>
-                          <span className="font-mono text-black bg-transparent">________________________</span>
-                        </div>
-                      </div>
-
-                      {/* Signatures */}
-                      <div className="grid grid-cols-2 gap-8 pt-5 text-[10px] bg-transparent">
-                        <div className="border-t border-black pt-1 text-center text-black font-bold bg-transparent">
-                          Authorized Signatory
-                        </div>
-                        <div className="border-t border-black pt-1 text-center text-black font-bold bg-transparent">
-                          Receiver's Signature
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ));
-          })()}
-        </div>
-      )}
     </div>
   );
 }
