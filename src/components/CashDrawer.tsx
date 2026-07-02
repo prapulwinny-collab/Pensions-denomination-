@@ -116,19 +116,35 @@ export default function CashDrawer({
 
                 {/* Right Section: Tactile inputs & quick increments */}
                 <div className="flex items-center gap-2">
-                  {/* Quick Add Pills */}
-                  <div className="flex gap-1">
+                  {/* Quick Add / Subtract Pills */}
+                  <div className="grid grid-cols-2 gap-1">
                     <button
                       onClick={() => adjustCount(denom, 100)}
-                      className="px-2 py-1 text-[10px] font-bold bg-white hover:bg-violet-50 text-violet-700 border border-violet-100 rounded-lg transition-all cursor-pointer shadow-3xs dark:bg-slate-900 dark:hover:bg-slate-800 dark:text-slate-350 dark:border-slate-700"
+                      className="px-1.5 py-0.5 text-[9px] font-bold bg-white hover:bg-violet-50 text-violet-700 border border-violet-100 rounded-lg transition-all cursor-pointer shadow-3xs dark:bg-slate-900 dark:hover:bg-slate-800 dark:text-slate-350 dark:border-slate-700 text-center whitespace-nowrap min-w-[38px]"
+                      title="Add 100 notes"
                     >
                       +100
                     </button>
                     <button
                       onClick={() => adjustCount(denom, 1000)}
-                      className="px-2 py-1 text-[10px] font-bold bg-white hover:bg-violet-50 text-violet-700 border border-violet-100 rounded-lg transition-all cursor-pointer shadow-3xs dark:bg-slate-900 dark:hover:bg-slate-800 dark:text-slate-350 dark:border-slate-700"
+                      className="px-1.5 py-0.5 text-[9px] font-bold bg-white hover:bg-violet-50 text-violet-700 border border-violet-100 rounded-lg transition-all cursor-pointer shadow-3xs dark:bg-slate-900 dark:hover:bg-slate-800 dark:text-slate-350 dark:border-slate-700 text-center whitespace-nowrap min-w-[44px]"
+                      title="Add 1000 notes"
                     >
                       +1000
+                    </button>
+                    <button
+                      onClick={() => adjustCount(denom, -100)}
+                      className="px-1.5 py-0.5 text-[9px] font-bold bg-white hover:bg-rose-50 text-rose-600 hover:text-rose-700 border border-slate-100 hover:border-rose-200/50 rounded-lg transition-all cursor-pointer shadow-3xs dark:bg-slate-900 dark:hover:bg-rose-950/20 dark:text-rose-400 dark:border-slate-700 text-center whitespace-nowrap min-w-[38px]"
+                      title="Subtract 100 notes"
+                    >
+                      -100
+                    </button>
+                    <button
+                      onClick={() => adjustCount(denom, -1000)}
+                      className="px-1.5 py-0.5 text-[9px] font-bold bg-white hover:bg-rose-50 text-rose-600 hover:text-rose-700 border border-slate-100 hover:border-rose-200/50 rounded-lg transition-all cursor-pointer shadow-3xs dark:bg-slate-900 dark:hover:bg-rose-950/20 dark:text-rose-400 dark:border-slate-700 text-center whitespace-nowrap min-w-[44px]"
+                      title="Subtract 1000 notes"
+                    >
+                      -1000
                     </button>
                   </div>
 
