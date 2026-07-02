@@ -86,7 +86,7 @@
     border: 1px dashed #000000 !important; /* clean black dashed lines for cutting */
     padding: 5mm 6mm !important;
     border-radius: 8px !important;
-    background-color: white !important;
+    background-color: transparent !important;
     color: black !important;
     display: flex !important;
     flex-direction: column !important;
@@ -141,7 +141,7 @@
   border: 1px dashed #000000 !important; /* clean black dashed lines for cutting */
   padding: 5mm 6mm !important;
   border-radius: 8px !important;
-  background-color: white !important;
+  background-color: transparent !important;
   color: black !important;
   display: flex !important;
   flex-direction: column !important;

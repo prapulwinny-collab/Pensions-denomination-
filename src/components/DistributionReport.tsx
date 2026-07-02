@@ -961,43 +961,43 @@ export default function DistributionReport({
                 if (!alloc) return null;
                 
                 return (
-                  <div key={f.id} className="print-card bg-white text-black border border-dashed border-black">
+                  <div key={f.id} className="print-card bg-transparent text-black border border-dashed border-black">
                     {/* Header */}
-                    <div className="flex justify-between items-start border-b border-dashed border-black pb-2 bg-white">
+                    <div className="flex justify-between items-start border-b border-dashed border-black pb-2 bg-transparent">
                       <div>
                         <h3 className="font-display font-bold text-sm text-black">CASH PAYOUT RECEIPT</h3>
                         <p className="text-[9px] text-black font-mono font-bold">Slip #{globalIndex + 1} • {formatDateDDMMYYYY()}</p>
                       </div>
-                      <div className="text-right text-black">
+                      <div className="text-right text-black bg-transparent">
                         <span className="text-[9px] uppercase font-bold text-black tracking-wider">Amount Paid</span>
-                        <p className="text-base font-bold font-mono text-black">{formatCurrency(alloc.allocatedAmount, selectedCurrency.symbol)}</p>
+                        <p className="text-base font-bold font-mono text-black bg-transparent">{formatCurrency(alloc.allocatedAmount, selectedCurrency.symbol)}</p>
                       </div>
                     </div>
 
                     {/* Details Grid */}
-                    <div className="grid grid-cols-3 gap-2 text-[11px] pt-1 bg-white text-black">
-                      <div>
-                        <span className="text-[9px] text-black block font-bold uppercase">Paid To (Functionary):</span>
-                        <span className="font-bold text-black">{f.name}</span>
+                    <div className="grid grid-cols-3 gap-2 text-[11px] pt-1 bg-transparent text-black">
+                      <div className="bg-transparent">
+                        <span className="text-[9px] text-black block font-bold uppercase bg-transparent">Paid To (Functionary):</span>
+                        <span className="font-bold text-black bg-transparent">{f.name}</span>
                       </div>
-                      <div className="text-center">
-                        <span className="text-[9px] text-black block font-bold uppercase">No of Pensions:</span>
-                        <span className="font-bold text-black block">{f.pensions || 1}</span>
+                      <div className="text-center bg-transparent">
+                        <span className="text-[9px] text-black block font-bold uppercase bg-transparent">No of Pensions:</span>
+                        <span className="font-bold text-black block bg-transparent">{f.pensions || 1}</span>
                       </div>
-                      <div className="text-right">
-                        <span className="text-[9px] text-black block font-bold uppercase">Target Share:</span>
-                        <span className="font-mono text-black block">{formatCurrency(f.amount, selectedCurrency.symbol)}</span>
+                      <div className="text-right bg-transparent">
+                        <span className="text-[9px] text-black block font-bold uppercase bg-transparent">Target Share:</span>
+                        <span className="font-mono text-black block bg-transparent">{formatCurrency(f.amount, selectedCurrency.symbol)}</span>
                       </div>
                     </div>
 
                     {/* Breakdown Box */}
-                    <div className="bg-white p-2 rounded border border-black my-1 text-black">
-                      <span className="text-[9px] font-bold text-black block uppercase mb-1">Denomination Breakdown:</span>
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 bg-white text-[11px] font-mono font-bold text-black">
+                    <div className="bg-transparent p-2 rounded border border-black my-1 text-black">
+                      <span className="text-[9px] font-bold text-black block uppercase mb-1 bg-transparent">Denomination Breakdown:</span>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 bg-transparent text-[11px] font-mono font-bold text-black">
                         {denominations.filter(denom => (alloc.notes[denom] || 0) > 0).map((denom, idx, arr) => {
                           const count = alloc.notes[denom] || 0;
                           return (
-                            <span key={denom} className="whitespace-nowrap">
+                            <span key={denom} className="whitespace-nowrap bg-transparent">
                               {selectedCurrency.symbol}{denom} × {count} = {formatCurrency(count * denom, selectedCurrency.symbol)}{idx < arr.length - 1 ? "   • " : ""}
                             </span>
                           );
@@ -1006,23 +1006,23 @@ export default function DistributionReport({
                     </div>
 
                     {/* Return lines */}
-                    <div className="border-t border-dashed border-black pt-2 flex flex-wrap gap-x-6 gap-y-1 text-[11px] bg-white text-black">
-                      <div className="flex items-center gap-1 bg-white">
-                        <span className="font-semibold text-black">Number of undisbursed pensions:</span>
-                        <span className="font-mono text-black">______</span>
+                    <div className="border-t border-dashed border-black pt-2 flex flex-wrap gap-x-6 gap-y-1 text-[11px] bg-transparent text-black">
+                      <div className="flex items-center gap-1 bg-transparent">
+                        <span className="font-semibold text-black bg-transparent">Number of undisbursed pensions:</span>
+                        <span className="font-mono text-black bg-transparent">______</span>
                       </div>
-                      <div className="flex items-center gap-1 bg-white">
-                        <span className="font-semibold text-black">Returned amount:</span>
-                        <span className="font-mono text-black">________________________</span>
+                      <div className="flex items-center gap-1 bg-transparent">
+                        <span className="font-semibold text-black bg-transparent">Returned amount:</span>
+                        <span className="font-mono text-black bg-transparent">________________________</span>
                       </div>
                     </div>
 
                     {/* Signatures */}
-                    <div className="grid grid-cols-2 gap-8 pt-5 text-[10px] bg-white text-black">
-                      <div className="border-t border-black pt-1 text-center text-black font-bold bg-white">
+                    <div className="grid grid-cols-2 gap-8 pt-5 text-[10px] bg-transparent text-black">
+                      <div className="border-t border-black pt-1 text-center text-black font-bold bg-transparent">
                         Authorized Signatory
                       </div>
-                      <div className="border-t border-black pt-1 text-center text-black font-bold bg-white">
+                      <div className="border-t border-black pt-1 text-center text-black font-bold bg-transparent">
                         Receiver's Signature
                       </div>
                     </div>
@@ -1129,43 +1129,43 @@ export default function DistributionReport({
                   if (!alloc) return null;
 
                   return (
-                    <div key={f.id} className="pdf-print-card bg-white p-4 text-black border border-dashed border-black">
+                    <div key={f.id} className="pdf-print-card bg-transparent p-4 text-black border border-dashed border-black">
                       {/* Header */}
-                      <div className="flex justify-between items-start border-b border-dashed border-black pb-2 bg-white">
+                      <div className="flex justify-between items-start border-b border-dashed border-black pb-2 bg-transparent">
                         <div>
-                          <h3 className="font-display font-bold text-sm text-black">CASH PAYOUT RECEIPT</h3>
-                          <p className="text-[9px] text-black font-mono font-bold">Slip #{globalIndex + 1} • {formatDateDDMMYYYY()}</p>
+                          <h3 className="font-display font-bold text-sm text-black bg-transparent">CASH PAYOUT RECEIPT</h3>
+                          <p className="text-[9px] text-black font-mono font-bold bg-transparent">Slip #{globalIndex + 1} • {formatDateDDMMYYYY()}</p>
                         </div>
-                        <div className="text-right">
-                          <span className="text-[9px] uppercase font-bold text-black tracking-wider">Amount Paid</span>
-                          <p className="text-base font-bold font-mono text-black">{formatCurrency(alloc.allocatedAmount, selectedCurrency.symbol)}</p>
+                        <div className="text-right bg-transparent">
+                          <span className="text-[9px] uppercase font-bold text-black tracking-wider bg-transparent">Amount Paid</span>
+                          <p className="text-base font-bold font-mono text-black bg-transparent">{formatCurrency(alloc.allocatedAmount, selectedCurrency.symbol)}</p>
                         </div>
                       </div>
 
                       {/* Details Grid */}
-                      <div className="grid grid-cols-3 gap-2 text-[11px] pt-1 bg-white">
-                        <div>
-                          <span className="text-[9px] text-black block font-bold uppercase">Paid To (Functionary):</span>
-                          <span className="font-bold text-black">{f.name}</span>
+                      <div className="grid grid-cols-3 gap-2 text-[11px] pt-1 bg-transparent">
+                        <div className="bg-transparent">
+                          <span className="text-[9px] text-black block font-bold uppercase bg-transparent">Paid To (Functionary):</span>
+                          <span className="font-bold text-black bg-transparent">{f.name}</span>
                         </div>
-                        <div className="text-center">
-                          <span className="text-[9px] text-black block font-bold uppercase">No of Pensions:</span>
-                          <span className="font-bold text-black block">{f.pensions || 1}</span>
+                        <div className="text-center bg-transparent">
+                          <span className="text-[9px] text-black block font-bold uppercase bg-transparent">No of Pensions:</span>
+                          <span className="font-bold text-black block bg-transparent">{f.pensions || 1}</span>
                         </div>
-                        <div className="text-right">
-                          <span className="text-[9px] text-black block font-bold uppercase">Target Share:</span>
-                          <span className="font-mono text-black block">{formatCurrency(f.amount, selectedCurrency.symbol)}</span>
+                        <div className="text-right bg-transparent">
+                          <span className="text-[9px] text-black block font-bold uppercase bg-transparent">Target Share:</span>
+                          <span className="font-mono text-black block bg-transparent">{formatCurrency(f.amount, selectedCurrency.symbol)}</span>
                         </div>
                       </div>
 
                       {/* Breakdown Box */}
-                      <div className="bg-white p-2 rounded border border-black my-1">
-                        <span className="text-[9px] font-bold text-black block uppercase mb-1">Denomination Breakdown:</span>
-                        <div className="flex flex-wrap gap-x-4 gap-y-1 bg-white text-[11px] font-mono font-bold text-black">
+                      <div className="bg-transparent p-2 rounded border border-black my-1">
+                        <span className="text-[9px] font-bold text-black block uppercase mb-1 bg-transparent">Denomination Breakdown:</span>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 bg-transparent text-[11px] font-mono font-bold text-black">
                           {denominations.filter(denom => (alloc.notes[denom] || 0) > 0).map((denom, idx, arr) => {
                             const count = alloc.notes[denom] || 0;
                             return (
-                              <span key={denom} className="whitespace-nowrap">
+                              <span key={denom} className="whitespace-nowrap bg-transparent">
                                 {selectedCurrency.symbol}{denom} × {count} = {formatCurrency(count * denom, selectedCurrency.symbol)}{idx < arr.length - 1 ? "   • " : ""}
                               </span>
                             );
@@ -1174,23 +1174,23 @@ export default function DistributionReport({
                       </div>
 
                       {/* Return lines */}
-                      <div className="border-t border-dashed border-black pt-2 flex flex-wrap gap-x-6 gap-y-1 text-[11px] bg-white">
-                        <div className="flex items-center gap-1 bg-white">
-                          <span className="font-semibold text-black">Number of undisbursed pensions:</span>
-                          <span className="font-mono text-black">______</span>
+                      <div className="border-t border-dashed border-black pt-2 flex flex-wrap gap-x-6 gap-y-1 text-[11px] bg-transparent">
+                        <div className="flex items-center gap-1 bg-transparent">
+                          <span className="font-semibold text-black bg-transparent">Number of undisbursed pensions:</span>
+                          <span className="font-mono text-black bg-transparent">______</span>
                         </div>
-                        <div className="flex items-center gap-1 bg-white">
-                          <span className="font-semibold text-black">Returned amount:</span>
-                          <span className="font-mono text-black">________________________</span>
+                        <div className="flex items-center gap-1 bg-transparent">
+                          <span className="font-semibold text-black bg-transparent">Returned amount:</span>
+                          <span className="font-mono text-black bg-transparent">________________________</span>
                         </div>
                       </div>
 
                       {/* Signatures */}
-                      <div className="grid grid-cols-2 gap-8 pt-5 text-[10px] bg-white">
-                        <div className="border-t border-black pt-1 text-center text-black font-bold bg-white">
+                      <div className="grid grid-cols-2 gap-8 pt-5 text-[10px] bg-transparent">
+                        <div className="border-t border-black pt-1 text-center text-black font-bold bg-transparent">
                           Authorized Signatory
                         </div>
-                        <div className="border-t border-black pt-1 text-center text-black font-bold bg-white">
+                        <div className="border-t border-black pt-1 text-center text-black font-bold bg-transparent">
                           Receiver's Signature
                         </div>
                       </div>
