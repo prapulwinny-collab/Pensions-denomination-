@@ -109,7 +109,7 @@
 .pdf-page {
   width: 210mm !important;
   height: 297mm !important; /* standard A4 height */
-  border: 1.5mm double #1e293b !important; /* highly elegant, professional document page border */
+  border: none !important; /* completely plain black and white without any frame */
   padding: 8mm 10mm !important;
   box-sizing: border-box !important;
   display: flex !important;
@@ -123,7 +123,7 @@
 .pdf-receipt-page {
   width: 210mm !important;
   height: 297mm !important; /* standard A4 height */
-  border: 1.5mm double #1e293b !important; /* highly elegant, professional document page border */
+  border: none !important; /* completely plain black and white without any frame */
   padding: 6mm 8mm !important;
   box-sizing: border-box !important;
   display: flex !important;
@@ -138,10 +138,10 @@
 .pdf-print-card {
   height: 75mm !important;
   box-sizing: border-box !important;
-  border: 1.5px dashed #475569 !important; /* clean dashed lines for cutting */
+  border: 1px dashed #000000 !important; /* clean black dashed lines for cutting */
   padding: 5mm 6mm !important;
   border-radius: 8px !important;
-  background-color: transparent !important;
+  background-color: white !important;
   color: black !important;
   display: flex !important;
   flex-direction: column !important;
