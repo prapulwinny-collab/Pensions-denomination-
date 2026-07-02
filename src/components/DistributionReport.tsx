@@ -866,89 +866,63 @@ export default function DistributionReport({
       </div>
 
       {/* Print Page 1: Detailed Staff Payout Schedule (Hidden on screen, styled for ISO A4 print) */}
-      <div className="hidden print:block print-only print-page" id="printable-schedule-page">
+      <div className="hidden print:block print-only print-page bg-white text-black" id="printable-schedule-page">
         {/* Header */}
-        <div className="flex justify-between items-center border-b-2 border-slate-800 pb-3 mb-6">
+        <div className="flex justify-between items-center border-b border-black pb-3 mb-6 bg-white">
           <div>
-            <h1 className="font-display font-extrabold text-lg text-slate-900 uppercase tracking-tight">
+            <h1 className="font-display font-extrabold text-lg text-black uppercase tracking-tight">
               Detailed Staff Payout Schedule
             </h1>
-            <p className="text-[10px] text-slate-500 font-mono mt-0.5">
+            <p className="text-[10px] text-black font-mono mt-0.5">
               Report Generated: {formatDateDDMMYYYY()}
             </p>
           </div>
-          <div className="text-right text-[10px]">
-            <span className="font-bold text-slate-700">Allocation Mode: </span>
-            <span className="font-semibold text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+          <div className="text-right text-[10px] text-black bg-white">
+            <span className="font-bold">Allocation Mode: </span>
+            <span className="font-semibold text-black bg-white px-2 py-0.5 rounded border border-black">
               {isEquivalentMode ? 'Equivalent Division' : 'Greedy Division'}
             </span>
           </div>
         </div>
 
         {/* Elegant Schedule Table */}
-        <div className="border border-slate-300 rounded-xl overflow-hidden mt-4">
-          <table className="w-full text-left border-collapse table-fixed">
+        <div className="border border-black rounded-xl overflow-hidden mt-4 bg-white">
+          <table className="w-full text-left border-collapse table-fixed bg-white">
             <thead>
-              <tr className="bg-slate-100 text-[9px] font-extrabold uppercase text-slate-700 border-b border-slate-300">
-                <th className="py-2 px-4 w-[22%]">Staff / Functionary</th>
-                <th className="py-2 px-3 text-center w-[8%]">Pensions</th>
-                <th className="py-2 px-3 text-right w-[15%]">Target Share</th>
-                <th className="py-2 px-3 text-right w-[15%]">Allocated Amt</th>
-                <th className="py-2 px-4 text-center w-[40%]">Denomination Breakdown</th>
+              <tr className="bg-white text-[9px] font-extrabold uppercase text-black border-b border-black">
+                <th className="py-2 px-4 w-[22%] text-black">Staff / Functionary</th>
+                <th className="py-2 px-3 text-center w-[8%] text-black">Pensions</th>
+                <th className="py-2 px-3 text-right w-[15%] text-black">Target Share</th>
+                <th className="py-2 px-3 text-right w-[15%] text-black">Allocated Amt</th>
+                <th className="py-2 px-4 text-center w-[40%] text-black">Denomination Breakdown</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200 text-[11px]">
+            <tbody className="divide-y divide-black text-[11px] bg-white">
               {functionaries.filter(f => f.amount > 0).map(f => {
                 const alloc = summary.allocations[f.id];
                 if (!alloc) return null;
 
                 const hasNotes = Object.entries(alloc.notes).some(([_, count]) => count > 0);
-
                 const activeDenoms = denominations.filter(denom => (alloc.notes[denom] || 0) > 0);
-                const midPoint = Math.ceil(activeDenoms.length / 2);
-                const line1 = activeDenoms.slice(0, midPoint);
-                const line2 = activeDenoms.slice(midPoint);
 
                 return (
-                  <tr key={f.id} className="hover:bg-slate-50/50">
-                    <td className="py-1.5 px-4 font-bold text-slate-800 break-words">{f.name}</td>
-                    <td className="py-1.5 px-3 text-center font-semibold text-slate-600">{f.pensions || 1}</td>
-                    <td className="py-1.5 px-3 text-right font-mono text-slate-700">{formatCurrency(f.amount, selectedCurrency.symbol)}</td>
-                    <td className="py-1.5 px-3 text-right font-mono font-bold text-slate-900">{formatCurrency(alloc.allocatedAmount, selectedCurrency.symbol)}</td>
-                    <td className="py-1.5 px-4 text-center">
-                      <div className="flex flex-col gap-0.5 items-center justify-center">
-                        {line1.length > 0 && (
-                          <div className="flex flex-wrap gap-1 justify-center">
-                            {line1.map(denom => {
-                              const count = alloc.notes[denom] || 0;
-                              return (
-                                <span
-                                  key={denom}
-                                  className="inline-block bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded text-[9px] font-mono text-slate-700 whitespace-nowrap"
-                                >
-                                  {selectedCurrency.symbol}{denom}×{count}
-                                </span>
-                              );
-                            })}
-                          </div>
-                        )}
-                        {line2.length > 0 && (
-                          <div className="flex flex-wrap gap-1 justify-center">
-                            {line2.map(denom => {
-                              const count = alloc.notes[denom] || 0;
-                              return (
-                                <span
-                                  key={denom}
-                                  className="inline-block bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded text-[9px] font-mono text-slate-700 whitespace-nowrap"
-                                >
-                                  {selectedCurrency.symbol}{denom}×{count}
-                                </span>
-                              );
-                            })}
-                          </div>
-                        )}
+                  <tr key={f.id} className="bg-white text-black">
+                    <td className="py-1.5 px-4 font-bold text-black break-words bg-white">{f.name}</td>
+                    <td className="py-1.5 px-3 text-center font-semibold text-black bg-white">{f.pensions || 1}</td>
+                    <td className="py-1.5 px-3 text-right font-mono text-black bg-white">{formatCurrency(f.amount, selectedCurrency.symbol)}</td>
+                    <td className="py-1.5 px-3 text-right font-mono font-bold text-black bg-white">{formatCurrency(alloc.allocatedAmount, selectedCurrency.symbol)}</td>
+                    <td className="py-1.5 px-4 text-center bg-white">
+                      <div className="flex flex-wrap gap-x-2.5 gap-y-1 items-center justify-center bg-white text-[10px] font-mono text-black font-semibold">
+                        {activeDenoms.map((denom, idx) => {
+                          const count = alloc.notes[denom] || 0;
+                          return (
+                            <span key={denom} className="whitespace-nowrap">
+                              {selectedCurrency.symbol}{denom}×{count}{idx < activeDenoms.length - 1 ? " ," : ""}
+                            </span>
+                          );
+                        })}
                         {!hasNotes && (
-                          <span className="text-[10px] text-slate-400 font-mono italic">None</span>
+                          <span className="text-[10px] text-black font-mono italic">None</span>
                         )}
                       </div>
                     </td>
@@ -959,12 +933,12 @@ export default function DistributionReport({
           </table>
 
           {/* Footer block for Detailed Schedule */}
-          <div className="p-3 bg-slate-50 border-t border-slate-300 flex justify-between items-center text-[10px] text-slate-500">
+          <div className="p-3 bg-white border-t border-black flex justify-between items-center text-[10px] text-black">
             <div>
-              <p className="font-semibold text-slate-600">Total Payout Fulfilled: <span className="font-bold text-slate-800 font-mono">{formatCurrency(summary.totalAllocated, selectedCurrency.symbol)}</span></p>
+              <p className="font-semibold text-black">Total Payout Fulfilled: <span className="font-bold text-black font-mono">{formatCurrency(summary.totalAllocated, selectedCurrency.symbol)}</span></p>
             </div>
             <div>
-              <p className="font-mono">Payout Schedule</p>
+              <p className="font-mono text-black">Payout Schedule</p>
             </div>
           </div>
         </div>
@@ -987,45 +961,44 @@ export default function DistributionReport({
                 if (!alloc) return null;
                 
                 return (
-                  <div key={f.id} className="print-card">
+                  <div key={f.id} className="print-card bg-white text-black border border-dashed border-black">
                     {/* Header */}
-                    <div className="flex justify-between items-start border-b border-dashed border-slate-300 pb-2">
+                    <div className="flex justify-between items-start border-b border-dashed border-black pb-2 bg-white">
                       <div>
-                        <h3 className="font-display font-bold text-sm text-slate-800">CASH PAYOUT RECEIPT</h3>
-                        <p className="text-[9px] text-slate-500 font-mono">Slip #{globalIndex + 1} • {formatDateDDMMYYYY()}</p>
+                        <h3 className="font-display font-bold text-sm text-black">CASH PAYOUT RECEIPT</h3>
+                        <p className="text-[9px] text-black font-mono font-bold">Slip #{globalIndex + 1} • {formatDateDDMMYYYY()}</p>
                       </div>
-                      <div className="text-right">
-                        <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider">Amount Paid</span>
-                        <p className="text-base font-bold font-mono text-slate-900">{formatCurrency(alloc.allocatedAmount, selectedCurrency.symbol)}</p>
+                      <div className="text-right text-black">
+                        <span className="text-[9px] uppercase font-bold text-black tracking-wider">Amount Paid</span>
+                        <p className="text-base font-bold font-mono text-black">{formatCurrency(alloc.allocatedAmount, selectedCurrency.symbol)}</p>
                       </div>
                     </div>
 
                     {/* Details Grid */}
-                    <div className="grid grid-cols-3 gap-2 text-[11px] pt-1">
+                    <div className="grid grid-cols-3 gap-2 text-[11px] pt-1 bg-white text-black">
                       <div>
-                        <span className="text-[9px] text-slate-400 block font-semibold uppercase">Paid To (Functionary):</span>
-                        <span className="font-bold text-slate-850">{f.name}</span>
+                        <span className="text-[9px] text-black block font-bold uppercase">Paid To (Functionary):</span>
+                        <span className="font-bold text-black">{f.name}</span>
                       </div>
                       <div className="text-center">
-                        <span className="text-[9px] text-slate-400 block font-semibold uppercase">No of Pensions:</span>
-                        <span className="font-bold text-slate-700 block">{f.pensions || 1}</span>
+                        <span className="text-[9px] text-black block font-bold uppercase">No of Pensions:</span>
+                        <span className="font-bold text-black block">{f.pensions || 1}</span>
                       </div>
                       <div className="text-right">
-                        <span className="text-[9px] text-slate-400 block font-semibold uppercase">Target Share:</span>
-                        <span className="font-mono text-slate-700 block">{formatCurrency(f.amount, selectedCurrency.symbol)}</span>
+                        <span className="text-[9px] text-black block font-bold uppercase">Target Share:</span>
+                        <span className="font-mono text-black block">{formatCurrency(f.amount, selectedCurrency.symbol)}</span>
                       </div>
                     </div>
 
                     {/* Breakdown Box */}
-                    <div className="bg-slate-50/70 p-2 rounded border border-slate-200 my-1">
-                      <span className="text-[9px] font-bold text-slate-500 block uppercase mb-1">Denomination Breakdown:</span>
-                      <div className="flex flex-wrap gap-1.5">
-                        {denominations.map(denom => {
+                    <div className="bg-white p-2 rounded border border-black my-1 text-black">
+                      <span className="text-[9px] font-bold text-black block uppercase mb-1">Denomination Breakdown:</span>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 bg-white text-[11px] font-mono font-bold text-black">
+                        {denominations.filter(denom => (alloc.notes[denom] || 0) > 0).map((denom, idx, arr) => {
                           const count = alloc.notes[denom] || 0;
-                          if (count <= 0) return null;
                           return (
-                            <span key={denom} className="inline-block px-2 py-0.5 bg-white border border-slate-200 text-[10px] font-mono font-bold rounded">
-                              {selectedCurrency.symbol}{denom} × {count} = {formatCurrency(count * denom, selectedCurrency.symbol)}
+                            <span key={denom} className="whitespace-nowrap">
+                              {selectedCurrency.symbol}{denom} × {count} = {formatCurrency(count * denom, selectedCurrency.symbol)}{idx < arr.length - 1 ? "   • " : ""}
                             </span>
                           );
                         })}
@@ -1033,23 +1006,23 @@ export default function DistributionReport({
                     </div>
 
                     {/* Return lines */}
-                    <div className="border-t border-dashed border-slate-200 pt-2 flex flex-wrap gap-x-6 gap-y-1 text-[11px]">
-                      <div className="flex items-center gap-1">
-                        <span className="font-semibold text-slate-700">Number of undisbursed pensions:</span>
-                        <span className="font-mono text-slate-400">______</span>
+                    <div className="border-t border-dashed border-black pt-2 flex flex-wrap gap-x-6 gap-y-1 text-[11px] bg-white text-black">
+                      <div className="flex items-center gap-1 bg-white">
+                        <span className="font-semibold text-black">Number of undisbursed pensions:</span>
+                        <span className="font-mono text-black">______</span>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <span className="font-semibold text-slate-700">Returned amount:</span>
-                        <span className="font-mono text-slate-400">________________________</span>
+                      <div className="flex items-center gap-1 bg-white">
+                        <span className="font-semibold text-black">Returned amount:</span>
+                        <span className="font-mono text-black">________________________</span>
                       </div>
                     </div>
 
                     {/* Signatures */}
-                    <div className="grid grid-cols-2 gap-8 pt-5 text-[10px]">
-                      <div className="border-t border-slate-300 pt-1 text-center text-slate-500">
+                    <div className="grid grid-cols-2 gap-8 pt-5 text-[10px] bg-white text-black">
+                      <div className="border-t border-black pt-1 text-center text-black font-bold bg-white">
                         Authorized Signatory
                       </div>
-                      <div className="border-t border-slate-300 pt-1 text-center text-slate-500">
+                      <div className="border-t border-black pt-1 text-center text-black font-bold bg-white">
                         Receiver's Signature
                       </div>
                     </div>
