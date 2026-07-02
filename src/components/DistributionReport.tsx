@@ -866,7 +866,7 @@ export default function DistributionReport({
       </div>
 
       {/* Print Page 1: Detailed Staff Payout Schedule (Hidden on screen, styled for ISO A4 print) */}
-      <div className="hidden print:block print-only print-page bg-white text-black" id="printable-schedule-page">
+      <div className="hidden print:block print-only print-page text-black" id="printable-schedule-page" style={{ backgroundColor: '#ffffff', color: '#000000' }}>
         {/* Header */}
         <div className="flex justify-between items-center border-b border-black pb-3 mb-6 bg-white">
           <div>
@@ -954,7 +954,7 @@ export default function DistributionReport({
           }
           
           return chunks.map((chunk, pageIndex) => (
-            <div key={pageIndex} className="receipt-page">
+            <div key={pageIndex} className="receipt-page" style={{ backgroundColor: '#ffffff', color: '#000000' }}>
               {chunk.map((f, i) => {
                 const globalIndex = pageIndex * 3 + i;
                 const alloc = summary.allocations[f.id];
@@ -1036,9 +1036,9 @@ export default function DistributionReport({
 
       {/* Off-screen high-fidelity PDF capture container */}
       {isGeneratingPDF && (
-        <div className="pdf-capture-container bg-white" id="pdf-capture-container">
+        <div className="pdf-capture-container" id="pdf-capture-container" style={{ backgroundColor: '#ffffff', color: '#000000' }}>
           {/* Page 1: Detailed Schedule */}
-          <div className="pdf-page bg-white p-8 text-black" id="pdf-page-schedule">
+          <div className="pdf-page p-8 text-black" id="pdf-page-schedule" style={{ backgroundColor: '#ffffff', color: '#000000' }}>
             <div className="flex justify-between items-center border-b border-black pb-3 mb-6 bg-white">
               <div>
                 <h1 className="font-display font-extrabold text-lg text-black uppercase tracking-tight">
@@ -1122,7 +1122,7 @@ export default function DistributionReport({
             }
 
             return chunks.map((chunk, pageIndex) => (
-              <div key={pageIndex} className="pdf-receipt-page bg-white p-6 text-black" id={`pdf-page-receipts-${pageIndex}`}>
+              <div key={pageIndex} className="pdf-receipt-page p-6 text-black" id={`pdf-page-receipts-${pageIndex}`} style={{ backgroundColor: '#ffffff', color: '#000000' }}>
                 {chunk.map((f, i) => {
                   const globalIndex = pageIndex * 3 + i;
                   const alloc = summary.allocations[f.id];
