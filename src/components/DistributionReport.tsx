@@ -36,9 +36,70 @@ export default function DistributionReport({
   const denominations = selectedCurrency.denominations;
 
   const handleDownloadPDF = async () => {
+    const tempStyles: HTMLStyleElement[] = [];
+    const originalDisabledSheets: { sheet: CSSStyleSheet; disabled: boolean }[] = [];
+    const originalScrollX = window.scrollX;
+    const originalScrollY = window.scrollY;
+
     try {
       setIsGeneratingPDF(true);
       setPdfProgress('Preparing...');
+
+      // Dynamic oklch polyfiller for html2canvas compatibility
+      try {
+        const tempEl = document.createElement('div');
+        tempEl.style.display = 'none';
+        document.body.appendChild(tempEl);
+
+        const resolveOklch = (oklchStr: string) => {
+          try {
+            tempEl.style.color = '';
+            tempEl.style.color = oklchStr;
+            const computed = getComputedStyle(tempEl).color;
+            return computed || oklchStr;
+          } catch (e) {
+            return oklchStr;
+          }
+        };
+
+        const sheets = Array.from(document.styleSheets) as CSSStyleSheet[];
+        for (const sheet of sheets) {
+          // Skip our temporary styles to avoid double processing
+          if (sheet.ownerNode && (sheet.ownerNode as HTMLElement).classList?.contains('temp-pdf-style')) {
+            continue;
+          }
+
+          try {
+            let rulesText = '';
+            const rules = Array.from(sheet.cssRules || []);
+            for (const rule of rules) {
+              rulesText += rule.cssText + '\n';
+            }
+
+            if (rulesText.includes('oklch')) {
+              const oklchRegex = /oklch\([^)]+\)/g;
+              const modifiedText = rulesText.replace(oklchRegex, (match) => {
+                return resolveOklch(match);
+              });
+
+              const styleEl = document.createElement('style');
+              styleEl.className = 'temp-pdf-style';
+              styleEl.innerHTML = modifiedText;
+              document.head.appendChild(styleEl);
+              tempStyles.push(styleEl);
+
+              originalDisabledSheets.push({ sheet, disabled: sheet.disabled });
+              sheet.disabled = true;
+            }
+          } catch (e) {
+            console.warn('Could not polyfill stylesheet:', e);
+          }
+        }
+
+        document.body.removeChild(tempEl);
+      } catch (polyfillErr) {
+        console.warn('oklch polyfill setup failed:', polyfillErr);
+      }
       
       // Wait dynamically for elements to render in the DOM
       let scheduleEl: HTMLElement | null = null;
@@ -63,8 +124,6 @@ export default function DistributionReport({
       setPdfProgress('Rendering Schedule...');
       
       // Force scroll layout reset to guarantee zero offset
-      const originalScrollX = window.scrollX;
-      const originalScrollY = window.scrollY;
       window.scrollTo(0, 0);
 
       let canvasSchedule;
@@ -163,6 +222,24 @@ export default function DistributionReport({
       console.error('PDF Generation failed with detailed error:', err);
       alert(`An error occurred while generating the PDF: ${err instanceof Error ? err.message : String(err)}\n\nPlease try again or use the print function.`);
     } finally {
+      // Restore scroll in case it didn't get restored
+      window.scrollTo(originalScrollX, originalScrollY);
+
+      // Clean up polyfilled style elements
+      for (const styleEl of tempStyles) {
+        if (styleEl.parentNode) {
+          styleEl.parentNode.removeChild(styleEl);
+        }
+      }
+      // Restore original stylesheets
+      for (const item of originalDisabledSheets) {
+        try {
+          item.sheet.disabled = item.disabled;
+        } catch (e) {
+          console.warn('Could not restore stylesheet state:', e);
+        }
+      }
+
       setIsGeneratingPDF(false);
       setPdfProgress('');
     }
