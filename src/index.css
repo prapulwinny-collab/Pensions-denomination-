@@ -16,11 +16,26 @@
     margin: 10mm !important;
   }
 
-  html, body {
+  html, body, #root, .min-h-screen {
     margin: 0 !important;
     padding: 0 !important;
     background-color: white !important;
+    background-image: none !important;
     color: black !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Override any tailwind dark mode bg or text colors or gradients when printing */
+  .dark, .dark *, .dark html, .dark body, .dark #root, .dark .min-h-screen {
+    background-color: white !important;
+    background-image: none !important;
+    color: black !important;
+    border-color: black !important;
+  }
+
+  * {
+    background-image: none !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -147,4 +162,49 @@
   flex-direction: column !important;
   justify-content: space-between !important;
   box-shadow: none !important;
+}
+
+/* Ensure BOTH PDF capture and printer-only elements are completely isolated from dark mode styling and gradients,
+   rendering strictly as solid black text on clean white backgrounds */
+.pdf-capture-container,
+.pdf-capture-container *,
+.pdf-page,
+.pdf-page *,
+.pdf-receipt-page,
+.pdf-receipt-page *,
+.pdf-print-card,
+.pdf-print-card *,
+#printable-schedule-page,
+#printable-schedule-page *,
+#printable-slips-container,
+#printable-slips-container *,
+.print-page,
+.print-page *,
+.receipt-page,
+.receipt-page *,
+.print-card,
+.print-card * {
+  background-color: transparent !important;
+  background-image: none !important;
+  color: #000000 !important;
+  border-color: #000000 !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+/* Explicitly restore solid white background for the outer container pages */
+.pdf-capture-container,
+.pdf-page,
+.pdf-receipt-page,
+#printable-schedule-page,
+#printable-slips-container,
+.print-page,
+.receipt-page {
+  background-color: #ffffff !important;
+}
+
+/* Explicitly restore black borders for dashed payout receipt slips */
+.pdf-print-card,
+.print-card {
+  border: 1px dashed #000000 !important;
 }
