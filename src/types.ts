@@ -10,6 +10,7 @@ export interface Functionary {
   name: string;
   amount: number;
   pensions?: number;
+  notes?: string;
 }
 
 export interface DenominationStock {

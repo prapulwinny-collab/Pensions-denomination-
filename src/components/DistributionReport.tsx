@@ -114,7 +114,10 @@ export default function DistributionReport({
         
         const wrappedBreakdown = doc.splitTextToSize(breakdownStr, 66);
         const rowLines = Math.max(1, wrappedBreakdown.length);
-        const rowHeight = rowLines * lineSpacing + 2;
+        let rowHeight = rowLines * lineSpacing + 2;
+        if (f.notes) {
+          rowHeight += 4;
+        }
         
         if (currY + rowHeight > 275) {
           doc.addPage();
@@ -130,6 +133,15 @@ export default function DistributionReport({
         
         // Name
         doc.text(f.name, 15, currY + 4);
+        if (f.notes) {
+          doc.setFont('Helvetica', 'oblique');
+          doc.setFontSize(7.5);
+          doc.setTextColor(110, 110, 110);
+          doc.text(`Note: ${f.notes}`, 15, currY + 8);
+          doc.setFont('Helvetica', 'normal');
+          doc.setFontSize(8.5);
+          doc.setTextColor(0, 0, 0);
+        }
         
         // Pensions
         doc.text(String(f.pensions || 1), 65, currY + 4, { align: 'center' });
@@ -633,6 +645,11 @@ export default function DistributionReport({
                           </span>
                         )}
                       </h4>
+                      {f.notes && (
+                        <p className="text-[10px] text-amber-700/90 dark:text-amber-400/90 font-bold italic mt-0.5 max-w-sm">
+                          📝 Notes: {f.notes}
+                        </p>
+                      )}
                       <div className="text-[10px] text-rose-600/70 dark:text-slate-400 mt-0.5 flex gap-2 font-semibold">
                         <span>Pensions: <b className="text-rose-900 dark:text-rose-450 font-mono">{f.pensions || 1}</b></span>
                         <span>•</span>
@@ -771,7 +788,14 @@ export default function DistributionReport({
 
                 return (
                   <tr key={f.id} className="bg-white text-black">
-                    <td className="py-1.5 px-4 font-bold text-black break-words bg-white">{f.name}</td>
+                    <td className="py-1.5 px-4 font-bold text-black break-words bg-white">
+                      <div>{f.name}</div>
+                      {f.notes && (
+                        <div className="text-[9px] text-slate-500 font-normal italic mt-0.5">
+                          Note: {f.notes}
+                        </div>
+                      )}
+                    </td>
                     <td className="py-1.5 px-3 text-center font-semibold text-black bg-white">{f.pensions || 1}</td>
                     <td className="py-1.5 px-3 text-right font-mono text-black bg-white">{formatCurrency(f.amount, selectedCurrency.symbol)}</td>
                     <td className="py-1.5 px-3 text-right font-mono font-bold text-black bg-white">{formatCurrency(alloc.allocatedAmount, selectedCurrency.symbol)}</td>
@@ -843,6 +867,11 @@ export default function DistributionReport({
                       <div className="bg-transparent">
                         <span className="text-[9px] text-black block font-bold uppercase bg-transparent">Paid To (Functionary):</span>
                         <span className="font-bold text-black bg-transparent">{f.name}</span>
+                        {f.notes && (
+                          <span className="text-[9px] text-slate-600 block italic bg-transparent mt-0.5">
+                            ({f.notes})
+                          </span>
+                        )}
                       </div>
                       <div className="text-center bg-transparent">
                         <span className="text-[9px] text-black block font-bold uppercase bg-transparent">No of Pensions:</span>

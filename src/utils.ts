@@ -296,6 +296,9 @@ export function generateShareableSummary(
     } else {
       text += `   • Notes: None\n`;
     }
+    if (f.notes) {
+      text += `   • Remarks: ${f.notes}\n`;
+    }
   });
 
   return text;
@@ -306,20 +309,20 @@ export function generateShareableSummary(
  */
 export function getSampleFunctionaries(): Functionary[] {
   return [
-    { id: '1', name: 'Arjun Sharma', amount: 12500, pensions: 1 },
-    { id: '2', name: 'Priya Patel', amount: 8400, pensions: 2 },
-    { id: '3', name: 'Rajesh Kumar', amount: 15000, pensions: 1 },
+    { id: '1', name: 'Arjun Sharma', amount: 12500, pensions: 1, notes: 'Prefers 500s' },
+    { id: '2', name: 'Priya Patel', amount: 8400, pensions: 2, notes: 'Requires clean bills for temple' },
+    { id: '3', name: 'Rajesh Kumar', amount: 15000, pensions: 1, notes: 'Needs small change (10s, 20s)' },
     { id: '4', name: 'Ananya Rao', amount: 6200, pensions: 3 },
-    { id: '5', name: 'Vikram Singh', amount: 11000, pensions: 1 },
+    { id: '5', name: 'Vikram Singh', amount: 11000, pensions: 1, notes: 'Include at least one 100' },
     { id: '6', name: 'Sneha Reddy', amount: 9500, pensions: 1 },
     { id: '7', name: 'Amit Verma', amount: 14300, pensions: 2 },
     { id: '8', name: 'Kiran Nair', amount: 5500, pensions: 1 },
-    { id: '9', name: 'Deepa Joshi', amount: 10800, pensions: 1 },
+    { id: '9', name: 'Deepa Joshi', amount: 10800, pensions: 1, notes: 'Collects on Monday' },
     { id: '10', name: 'Sanjay Gupta', amount: 13200, pensions: 2 },
     { id: '11', name: 'Neha Das', amount: 7800, pensions: 1 },
     { id: '12', name: 'Rohan Mehta', amount: 11500, pensions: 1 },
     { id: '13', name: 'Kavitha Swamy', amount: 9000, pensions: 1 },
-    { id: '14', name: 'Manoj Pillai', amount: 12000, pensions: 2 },
+    { id: '14', name: 'Manoj Pillai', amount: 12000, pensions: 2, notes: 'Split 50/50 in two envelopes' },
     { id: '15', name: 'Sunita Sen', amount: 6800, pensions: 1 },
   ];
 }

@@ -46,11 +46,11 @@ export default function FunctionaryList({
     const newId = (Math.max(0, ...functionaries.map(f => parseInt(f.id, 10) || 0)) + 1).toString();
     onUpdateFunctionaries([
       ...functionaries,
-      { id: newId, name: `Functionary ${newId}`, amount: 0, pensions: 1 },
+      { id: newId, name: `Functionary ${newId}`, amount: 0, pensions: 1, notes: '' },
     ]);
   };
 
-  const handleUpdateField = (id: string, field: 'name' | 'amount' | 'pensions', value: string) => {
+  const handleUpdateField = (id: string, field: 'name' | 'amount' | 'pensions' | 'notes', value: string) => {
     onUpdateFunctionaries(
       functionaries.map(f => {
         if (f.id === id) {
@@ -61,6 +61,9 @@ export default function FunctionaryList({
           if (field === 'pensions') {
             const val = parseInt(value, 10);
             return { ...f, pensions: isNaN(val) || val < 1 ? 1 : val };
+          }
+          if (field === 'notes') {
+            return { ...f, notes: value };
           }
           return { ...f, name: value };
         }
@@ -545,6 +548,13 @@ export default function FunctionaryList({
                       className="w-full bg-transparent hover:bg-white focus:bg-white dark:hover:bg-slate-800 dark:focus:bg-slate-800 px-2 py-1.5 rounded-md border border-transparent focus:border-emerald-300 hover:border-emerald-200 dark:focus:border-emerald-700 dark:hover:border-slate-700 text-xs text-emerald-950 dark:text-white font-bold focus:outline-none transition-all"
                       placeholder="e.g. John Doe"
                       required
+                    />
+                    <input
+                      type="text"
+                      value={func.notes || ''}
+                      onChange={e => handleUpdateField(func.id, 'notes', e.target.value)}
+                      className="w-full bg-transparent hover:bg-white/80 dark:hover:bg-slate-800/80 focus:bg-white dark:focus:bg-slate-800 px-2 py-0.5 mt-0.5 rounded border border-transparent hover:border-emerald-100 dark:hover:border-slate-750 focus:border-emerald-300 dark:focus:border-emerald-850 text-[10px] text-emerald-800/80 dark:text-slate-400 placeholder-emerald-600/40 dark:placeholder-slate-500 focus:outline-none transition-all font-medium"
+                      placeholder="Remarks / payout instructions..."
                     />
                   </td>
                   <td className="py-2 px-3">
