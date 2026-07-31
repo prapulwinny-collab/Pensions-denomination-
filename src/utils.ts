@@ -74,98 +74,128 @@ export function calculateDistribution(
   // Sort auto functionaries descending by target amount to prioritize larger payouts
   const sortedAutoFunctionaries = [...autoFunctionaries].sort((a, b) => b.amount - a.amount);
 
-  sortedAutoFunctionaries.forEach(f => {
-    const notes: PayoutAllocation = {};
-    // Initialize all notes to 0
-    denominations.forEach(denom => { notes[denom] = 0; });
+  const remainingPayouts: Record<string, number> = {};
+  const autoNotes: Record<string, PayoutAllocation> = {};
 
-    let remainingPayout = f.amount;
+  sortedAutoFunctionaries.forEach(f => {
+    remainingPayouts[f.id] = f.amount;
+    autoNotes[f.id] = {};
+    denominations.forEach(d => { autoNotes[f.id][d] = 0; });
 
     if (f.amount <= 0) {
       allocations[f.id] = {
         functionaryId: f.id,
         allocatedAmount: 0,
-        notes,
+        notes: autoNotes[f.id],
         status: 'unpaid',
       };
-      return;
     }
+  });
 
-    // A. Pre-allocation of one of each declared available denomination if requested
-    if (ensureAllDenominations) {
-      // Find and sort available denominations in ascending order (smallest first) to maximize diversity
-      const availableDenoms = [...denominations]
-        .filter(d => (leftoverNotes[d] || 0) > 0)
-        .sort((a, b) => a - b);
+  const activeAutoFunctionaries = sortedAutoFunctionaries.filter(f => f.amount > 0);
+  const sortedDenoms = [...denominations].sort((a, b) => b - a);
 
-      availableDenoms.forEach(denom => {
-        if (remainingPayout >= denom) {
-          notes[denom] = 1;
-          remainingPayout -= denom;
-          if (!isUnlimited) {
-            leftoverNotes[denom] -= 1;
-          }
-        }
+  /**
+   * Helper function to distribute notes of a single denomination `denom`
+   * equitably (round-robin) among all active functionaries who need payout >= denom.
+   */
+  const distributeDenominationEquitably = (
+    denom: number,
+    maxNotesPerPerson?: number
+  ) => {
+    while (true) {
+      if (!isUnlimited && (leftoverNotes[denom] || 0) <= 0) break;
+
+      const eligible = activeAutoFunctionaries.filter(f => {
+        if (remainingPayouts[f.id] < denom) return false;
+        if (maxNotesPerPerson !== undefined && (autoNotes[f.id][denom] || 0) >= maxNotesPerPerson) return false;
+        return true;
       });
-    }
 
-    if (isEquivalentMode) {
-      // In unlimited mode, optimize by doing a flat pass of k of each note first to handle huge amounts instantly
+      if (eligible.length === 0) break;
+
+      const countsNeeded = eligible.map(f => {
+        const needed = Math.floor(remainingPayouts[f.id] / denom);
+        if (maxNotesPerPerson !== undefined) {
+          const alreadyHave = autoNotes[f.id][denom] || 0;
+          return Math.min(needed, maxNotesPerPerson - alreadyHave);
+        }
+        return needed;
+      });
+
+      const minNeeded = Math.min(...countsNeeded);
+      if (minNeeded <= 0) break;
+
+      const m = eligible.length;
+
       if (isUnlimited) {
-        const S = denominations.reduce((sum, d) => sum + d, 0);
-        const k = Math.floor(remainingPayout / S);
-        if (k > 0) {
-          denominations.forEach(denom => {
-            notes[denom] = (notes[denom] || 0) + k;
-          });
-          remainingPayout -= k * S;
-        }
-      }
-
-      // Now allocate the rest (or all, in limited mode) incrementally to keep note counts perfectly balanced
-      while (remainingPayout > 0) {
-        const candidates = denominations.filter(d => (leftoverNotes[d] || 0) > 0 && d <= remainingPayout);
-        if (candidates.length === 0) break;
-
-        // Sort candidates:
-        // 1. Minimum note count in hand (to balance notes)
-        // 2. Secondary: Larger denomination (to make progress and break ties)
-        candidates.sort((a, b) => {
-          const countA = notes[a] || 0;
-          const countB = notes[b] || 0;
-          if (countA !== countB) {
-            return countA - countB;
-          }
-          return b - a; // larger denomination first
+        eligible.forEach(f => {
+          autoNotes[f.id][denom] = (autoNotes[f.id][denom] || 0) + minNeeded;
+          remainingPayouts[f.id] -= minNeeded * denom;
         });
+      } else {
+        const avail = leftoverNotes[denom] || 0;
+        const totalNeeded = minNeeded * m;
 
-        const bestDenom = candidates[0];
-        notes[bestDenom] = (notes[bestDenom] || 0) + 1;
-        remainingPayout -= bestDenom;
-        if (!isUnlimited) {
-          leftoverNotes[bestDenom] -= 1;
-        }
-      }
-    } else {
-      // Try to satisfy using largest available notes (Greedy mode)
-      denominations.forEach(denom => {
-        if (remainingPayout >= denom) {
-          const maxNotesNeeded = Math.floor(remainingPayout / denom);
-          const available = leftoverNotes[denom] || 0;
-          const allocated = isUnlimited ? maxNotesNeeded : Math.min(maxNotesNeeded, available);
+        if (avail >= totalNeeded) {
+          eligible.forEach(f => {
+            autoNotes[f.id][denom] = (autoNotes[f.id][denom] || 0) + minNeeded;
+            remainingPayouts[f.id] -= minNeeded * denom;
+          });
+          leftoverNotes[denom] -= totalNeeded;
+        } else {
+          const k = Math.floor(avail / m);
+          if (k > 0) {
+            eligible.forEach(f => {
+              autoNotes[f.id][denom] = (autoNotes[f.id][denom] || 0) + k;
+              remainingPayouts[f.id] -= k * denom;
+            });
+            leftoverNotes[denom] -= k * m;
+          }
 
-          if (allocated > 0) {
-            notes[denom] = (notes[denom] || 0) + allocated;
-            remainingPayout -= allocated * denom;
-            if (!isUnlimited) {
-              leftoverNotes[denom] -= allocated;
+          const remainder = leftoverNotes[denom] || 0;
+          if (remainder > 0) {
+            const sortedEligible = [...eligible].sort((a, b) => {
+              const cntA = autoNotes[a.id][denom] || 0;
+              const cntB = autoNotes[b.id][denom] || 0;
+              if (cntA !== cntB) return cntA - cntB;
+              return b.amount - a.amount;
+            });
+
+            for (let i = 0; i < remainder; i++) {
+              const f = sortedEligible[i];
+              if (f && remainingPayouts[f.id] >= denom) {
+                autoNotes[f.id][denom] = (autoNotes[f.id][denom] || 0) + 1;
+                remainingPayouts[f.id] -= denom;
+                leftoverNotes[denom] -= 1;
+              }
             }
           }
+          break;
         }
-      });
+      }
     }
+  };
 
-    const allocatedAmount = f.amount - remainingPayout;
+  // Variety mode: pre-allocate 1 note of each available denomination round-robin
+  if (ensureAllDenominations) {
+    const availableDenomsAsc = [...denominations]
+      .filter(d => (leftoverNotes[d] || 0) > 0 || isUnlimited)
+      .sort((a, b) => a - b);
+
+    availableDenomsAsc.forEach(denom => {
+      distributeDenominationEquitably(denom, 1);
+    });
+  }
+
+  // Main distribution: allocate denominations round-robin from highest to lowest
+  sortedDenoms.forEach(denom => {
+    distributeDenominationEquitably(denom);
+  });
+
+  // Finalize allocations
+  activeAutoFunctionaries.forEach(f => {
+    const allocatedAmount = f.amount - remainingPayouts[f.id];
     let status: FunctionaryAllocation['status'] = 'unpaid';
     if (allocatedAmount === f.amount) {
       status = 'fully_paid';
@@ -176,7 +206,7 @@ export function calculateDistribution(
     allocations[f.id] = {
       functionaryId: f.id,
       allocatedAmount,
-      notes,
+      notes: autoNotes[f.id],
       status,
     };
   });
