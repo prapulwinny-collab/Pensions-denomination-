@@ -52,7 +52,7 @@ export default function CashDrawer({
   const totalValue = denominations.reduce((sum, d) => sum + (stock[d] || 0) * d, 0);
 
   return (
-    <div className="bg-gradient-to-br from-violet-50/90 to-purple-50/40 rounded-2xl p-6 border border-violet-100 shadow-xs flex flex-col h-full dark:from-slate-900 dark:to-slate-950 dark:border-slate-800" id="cash-drawer-card">
+    <div className="bg-gradient-to-br from-violet-50/90 to-purple-50/40 rounded-2xl p-3.5 sm:p-6 border border-violet-100 shadow-xs flex flex-col h-full dark:from-slate-900 dark:to-slate-950 dark:border-slate-800 min-w-0 max-w-full overflow-hidden" id="cash-drawer-card">
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-violet-100 text-violet-700 rounded-xl shadow-3xs dark:bg-violet-950/40 dark:text-violet-400 dark:border dark:border-violet-900/40">

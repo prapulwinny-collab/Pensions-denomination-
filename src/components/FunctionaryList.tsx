@@ -386,7 +386,7 @@ export default function FunctionaryList({
   const totalPayout = functionaries.reduce((sum, f) => sum + f.amount, 0);
 
   return (
-    <div className="bg-gradient-to-br from-emerald-50/90 to-teal-50/40 rounded-2xl p-6 border border-emerald-100 shadow-xs flex flex-col h-full dark:from-slate-900 dark:to-slate-950 dark:border-slate-800" id="functionary-list-card">
+    <div className="bg-gradient-to-br from-emerald-50/90 to-teal-50/40 rounded-2xl p-3.5 sm:p-6 border border-emerald-100 shadow-xs flex flex-col h-full dark:from-slate-900 dark:to-slate-950 dark:border-slate-800 min-w-0 max-w-full overflow-hidden" id="functionary-list-card">
       {/* Header section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div className="flex items-center gap-3">
@@ -505,7 +505,7 @@ export default function FunctionaryList({
       </div>
 
       {/* Main Table Container */}
-      <div className="flex-1 overflow-y-auto max-h-[380px] min-h-[250px] border border-emerald-100 rounded-xl mb-4 pr-1 bg-white/90 shadow-3xs dark:border-slate-800 dark:bg-slate-900/80">
+      <div className="flex-1 overflow-y-auto overflow-x-auto max-h-[380px] min-h-[250px] border border-emerald-100 rounded-xl mb-4 pr-1 bg-white/90 shadow-3xs dark:border-slate-800 dark:bg-slate-900/80 min-w-0 max-w-full">
         {functionaries.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-white/50 rounded-xl dark:bg-slate-900/50" id="empty-staff-box">
             <Users className="w-10 h-10 text-emerald-400/70 dark:text-emerald-500/50 mb-3" />

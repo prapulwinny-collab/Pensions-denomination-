@@ -140,6 +140,38 @@ export default function HistoryDashboard({
     return formatCurrency(amt, currencySymbol).replace(currencySymbol, pdfSym);
   };
 
+  // Helper to format clean month names without raw underscores or ugly suffixes
+  const formatMonthDisplayName = (str?: string) => {
+    if (!str) return '';
+    return str.replace(/_/g, ' ');
+  };
+
+  // Custom responsive tooltip component for Recharts that never breaks mobile bounds
+  const CustomChartTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-slate-900/95 border border-slate-700/80 p-2.5 rounded-xl text-white shadow-2xl max-w-[210px] sm:max-w-xs break-words text-xs backdrop-blur-md z-50 pointer-events-none">
+          <p className="font-bold text-emerald-400 mb-1 border-b border-slate-800/80 pb-1 truncate">
+            {formatMonthDisplayName(String(label || ''))}
+          </p>
+          {payload.map((entry: any, index: number) => (
+            <div key={index} className="flex justify-between gap-2 items-center my-0.5 text-[11px]">
+              <span className="text-slate-300 font-medium truncate max-w-[110px]" style={{ color: entry.color || '#34d399' }}>
+                {formatMonthDisplayName(String(entry.name || ''))}:
+              </span>
+              <span className="font-mono font-bold text-white shrink-0">
+                {typeof entry.value === 'number' && (entry.name?.includes('Cash') || entry.name?.includes('Disbursed') || entry.name?.includes('Total'))
+                  ? `${currencySymbol}${entry.value.toLocaleString()}`
+                  : entry.value}
+              </span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
   // Helper to snapshot active workspace into an Archive Record
   const handleArchiveCurrentMonth = () => {
     if (!archiveMonthName.trim()) {
@@ -309,15 +341,18 @@ export default function HistoryDashboard({
 
   // Prepare chart data for Recharts
   const trendChartData = records.map(r => ({
-    name: r.monthYear,
+    name: formatMonthDisplayName(r.monthYear),
     'Total Disbursed': r.totalDisbursed,
     'Staff Count': r.totalStaffCount,
   }));
 
+  const baseLabel = formatMonthDisplayName(baseRecord?.monthYear) || 'Base';
+  const targetLabel = formatMonthDisplayName(targetRecord?.monthYear) || 'Target';
+
   const denomChartData = selectedCurrency.denominations.map(d => ({
     denom: `${currencySymbol}${d}`,
-    [baseRecord?.monthYear || 'Base']: baseRecord?.denominationBreakdown[d] || 0,
-    [targetRecord?.monthYear || 'Target']: targetRecord?.denominationBreakdown[d] || 0,
+    [baseLabel]: baseRecord?.denominationBreakdown[d] || 0,
+    [targetLabel]: targetRecord?.denominationBreakdown[d] || 0,
   }));
 
   // Download Historical Comparative PDF Report
@@ -503,16 +538,16 @@ export default function HistoryDashboard({
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8" id="history-dashboard-root">
+    <div className="space-y-6 sm:space-y-8 w-full max-w-full min-w-0 overflow-x-hidden" id="history-dashboard-root">
       
       {/* 1. Header & Actions Bar */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
+      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 min-w-0 max-w-full">
+        <div className="min-w-0">
           <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-xs uppercase tracking-wider">
             <Archive className="w-4 h-4 shrink-0" />
             <span>Persistent Historical Archive & Analytics</span>
           </div>
-          <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white font-display mt-1">
+          <h2 className="text-lg sm:text-2xl font-extrabold text-slate-900 dark:text-white font-display mt-1 tracking-tight">
             Monthly Distribution History & Difference Dashboard
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -520,10 +555,10 @@ export default function HistoryDashboard({
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full md:w-auto shrink-0">
           <button
             onClick={() => setShowArchiveModal(true)}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer w-full sm:w-auto"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer w-full sm:w-auto text-center"
           >
             <PlusCircle className="w-4 h-4 shrink-0" />
             <span>Archive Current Month ({currencySymbol}{currentSummary.totalAllocated.toLocaleString()})</span>
@@ -532,7 +567,7 @@ export default function HistoryDashboard({
           {diffs && (
             <button
               onClick={handleDownloadComparativePDF}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer border border-slate-700 w-full sm:w-auto"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer border border-slate-700 w-full sm:w-auto text-center"
             >
               <Download className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>Download MoM PDF Report</span>
@@ -542,44 +577,44 @@ export default function HistoryDashboard({
       </div>
 
       {/* 2. Month Selector & MoM Comparative Metric Cards */}
-      <div className="bg-slate-900 text-white rounded-2xl p-4 sm:p-6 shadow-xl space-y-5 sm:space-y-6">
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 border-b border-slate-800 pb-4 sm:pb-5">
-          <div className="flex items-center gap-3">
+      <div className="bg-slate-900 text-white rounded-2xl p-4 sm:p-6 shadow-xl space-y-5 sm:space-y-6 w-full max-w-full min-w-0 overflow-hidden">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 border-b border-slate-800 pb-4 sm:pb-5 min-w-0">
+          <div className="flex items-center gap-3 min-w-0">
             <div className="p-2.5 bg-emerald-500/20 text-emerald-400 rounded-xl border border-emerald-500/30 shrink-0">
               <BarChart3 className="w-5 h-5" />
             </div>
-            <div>
-              <h3 className="text-base sm:text-lg font-bold font-display text-white">Month-over-Month Comparative Analytics</h3>
-              <p className="text-xs text-slate-400">Select base and target historical months to analyze differences</p>
+            <div className="min-w-0">
+              <h3 className="text-base sm:text-lg font-bold font-display text-white truncate">Month-over-Month Comparative Analytics</h3>
+              <p className="text-xs text-slate-400 truncate">Select base and target historical months to analyze differences</p>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 bg-slate-800/80 p-2.5 sm:p-2 rounded-xl border border-slate-700 w-full lg:w-auto">
-            <div className="flex items-center gap-1.5 text-xs text-slate-300 font-semibold px-1">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 bg-slate-800/80 p-2.5 sm:p-2 rounded-xl border border-slate-700 w-full lg:w-auto min-w-0 max-w-full">
+            <div className="flex items-center gap-1.5 text-xs text-slate-300 font-semibold px-1 shrink-0">
               <Filter className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
               <span>Compare:</span>
             </div>
 
-            <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="flex flex-col xs:flex-row sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto min-w-0 max-w-full">
               <select
                 value={baseMonthId}
                 onChange={(e) => setBaseMonthId(e.target.value)}
-                className="bg-slate-900 text-white text-xs font-bold px-3 py-2 sm:py-1.5 rounded-lg border border-slate-700 focus:outline-none focus:border-emerald-500 flex-1 sm:flex-initial"
+                className="bg-slate-900 text-white text-xs font-bold px-3 py-2 sm:py-1.5 rounded-lg border border-slate-700 focus:outline-none focus:border-emerald-500 w-full sm:w-auto min-w-0 max-w-full truncate cursor-pointer"
               >
                 {records.map(r => (
-                  <option key={r.id} value={r.id}>{r.monthYear} (Base)</option>
+                  <option key={r.id} value={r.id}>{formatMonthDisplayName(r.monthYear)} (Base)</option>
                 ))}
               </select>
 
-              <span className="text-xs text-slate-400 font-bold shrink-0">vs</span>
+              <span className="text-xs text-slate-400 font-bold shrink-0 text-center">vs</span>
 
               <select
                 value={targetMonthId}
                 onChange={(e) => setTargetMonthId(e.target.value)}
-                className="bg-slate-900 text-white text-xs font-bold px-3 py-2 sm:py-1.5 rounded-lg border border-slate-700 focus:outline-none focus:border-emerald-500 flex-1 sm:flex-initial"
+                className="bg-slate-900 text-white text-xs font-bold px-3 py-2 sm:py-1.5 rounded-lg border border-slate-700 focus:outline-none focus:border-emerald-500 w-full sm:w-auto min-w-0 max-w-full truncate cursor-pointer"
               >
                 {records.map(r => (
-                  <option key={r.id} value={r.id}>{r.monthYear} (Target)</option>
+                  <option key={r.id} value={r.id}>{formatMonthDisplayName(r.monthYear)} (Target)</option>
                 ))}
               </select>
             </div>
@@ -588,68 +623,68 @@ export default function HistoryDashboard({
 
         {/* Top MoM Difference Stat Badges */}
         {diffs && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 min-w-0 max-w-full">
             {/* Stat 1: Total Disbursed Diff */}
-            <div className="bg-slate-800/60 border border-slate-700/80 rounded-xl p-3.5 sm:p-4 space-y-2">
-              <span className="text-xs font-semibold text-slate-400 block">Total Cash Disbursed</span>
-              <div className="flex items-baseline justify-between gap-2 flex-wrap">
-                <span className="text-xl sm:text-2xl font-black text-white font-display">
+            <div className="bg-slate-800/60 border border-slate-700/80 rounded-xl p-3.5 sm:p-4 space-y-2 min-w-0">
+              <span className="text-xs font-semibold text-slate-400 block truncate">Total Cash Disbursed</span>
+              <div className="flex items-baseline justify-between gap-2 flex-wrap min-w-0">
+                <span className="text-xl sm:text-2xl font-black text-white font-display truncate max-w-full">
                   {currencySymbol}{targetRecord.totalDisbursed.toLocaleString()}
                 </span>
-                <span className={`inline-flex items-center text-[11px] sm:text-xs font-bold px-2 py-0.5 rounded-full ${diffs.disbursedDiff >= 0 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'}`}>
+                <span className={`inline-flex items-center text-[11px] sm:text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${diffs.disbursedDiff >= 0 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'}`}>
                   {diffs.disbursedDiff >= 0 ? <ArrowUpRight className="w-3.5 h-3.5 mr-0.5 shrink-0" /> : <ArrowDownRight className="w-3.5 h-3.5 mr-0.5 shrink-0" />}
                   {diffs.disbursedDiff >= 0 ? '+' : ''}{diffs.disbursedPct.toFixed(1)}%
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400">
-                Diff vs {baseRecord.monthYear}: <strong className={diffs.disbursedDiff >= 0 ? 'text-emerald-400' : 'text-rose-400'}>{diffs.disbursedDiff >= 0 ? '+' : ''}{currencySymbol}{diffs.disbursedDiff.toLocaleString()}</strong>
+              <p className="text-[11px] text-slate-400 truncate">
+                Diff vs {formatMonthDisplayName(baseRecord.monthYear)}: <strong className={diffs.disbursedDiff >= 0 ? 'text-emerald-400' : 'text-rose-400'}>{diffs.disbursedDiff >= 0 ? '+' : ''}{currencySymbol}{diffs.disbursedDiff.toLocaleString()}</strong>
               </p>
             </div>
 
             {/* Stat 2: Active Staff Diff */}
-            <div className="bg-slate-800/60 border border-slate-700/80 rounded-xl p-3.5 sm:p-4 space-y-2">
-              <span className="text-xs font-semibold text-slate-400 block">Staff Count</span>
-              <div className="flex items-baseline justify-between gap-2 flex-wrap">
-                <span className="text-xl sm:text-2xl font-black text-white font-display">
+            <div className="bg-slate-800/60 border border-slate-700/80 rounded-xl p-3.5 sm:p-4 space-y-2 min-w-0">
+              <span className="text-xs font-semibold text-slate-400 block truncate">Staff Count</span>
+              <div className="flex items-baseline justify-between gap-2 flex-wrap min-w-0">
+                <span className="text-xl sm:text-2xl font-black text-white font-display truncate">
                   {targetRecord.totalStaffCount} Members
                 </span>
-                <span className={`inline-flex items-center text-[11px] sm:text-xs font-bold px-2 py-0.5 rounded-full ${diffs.staffDiff >= 0 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'}`}>
+                <span className={`inline-flex items-center text-[11px] sm:text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${diffs.staffDiff >= 0 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'}`}>
                   {diffs.staffDiff >= 0 ? '+' : ''}{diffs.staffDiff} Staff
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400">
-                Base ({baseRecord.monthYear}): {baseRecord.totalStaffCount} staff members
+              <p className="text-[11px] text-slate-400 truncate">
+                Base ({formatMonthDisplayName(baseRecord.monthYear)}): {baseRecord.totalStaffCount} staff
               </p>
             </div>
 
             {/* Stat 3: Avg Payout per Staff */}
-            <div className="bg-slate-800/60 border border-slate-700/80 rounded-xl p-3.5 sm:p-4 space-y-2">
-              <span className="text-xs font-semibold text-slate-400 block">Avg Payout / Staff</span>
-              <div className="flex items-baseline justify-between gap-2 flex-wrap">
-                <span className="text-xl sm:text-2xl font-black text-white font-display">
+            <div className="bg-slate-800/60 border border-slate-700/80 rounded-xl p-3.5 sm:p-4 space-y-2 min-w-0">
+              <span className="text-xs font-semibold text-slate-400 block truncate">Avg Payout / Staff</span>
+              <div className="flex items-baseline justify-between gap-2 flex-wrap min-w-0">
+                <span className="text-xl sm:text-2xl font-black text-white font-display truncate">
                   {currencySymbol}{Math.round(diffs.targetAvg).toLocaleString()}
                 </span>
-                <span className={`inline-flex items-center text-[11px] sm:text-xs font-bold px-2 py-0.5 rounded-full ${diffs.avgDiff >= 0 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'}`}>
+                <span className={`inline-flex items-center text-[11px] sm:text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${diffs.avgDiff >= 0 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'}`}>
                   {diffs.avgDiff >= 0 ? '+' : ''}{currencySymbol}{Math.round(diffs.avgDiff).toLocaleString()}
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-slate-400 truncate">
                 Base Avg: {currencySymbol}{Math.round(diffs.baseAvg).toLocaleString()}
               </p>
             </div>
 
             {/* Stat 4: Strategy & Pension Count */}
-            <div className="bg-slate-800/60 border border-slate-700/80 rounded-xl p-3.5 sm:p-4 space-y-2">
-              <span className="text-xs font-semibold text-slate-400 block">Pensions & Strategy</span>
-              <div className="flex items-baseline justify-between gap-2 flex-wrap">
-                <span className="text-xl sm:text-2xl font-black text-emerald-400 font-display">
+            <div className="bg-slate-800/60 border border-slate-700/80 rounded-xl p-3.5 sm:p-4 space-y-2 min-w-0">
+              <span className="text-xs font-semibold text-slate-400 block truncate">Pensions & Strategy</span>
+              <div className="flex items-baseline justify-between gap-2 flex-wrap min-w-0">
+                <span className="text-xl sm:text-2xl font-black text-emerald-400 font-display truncate">
                   {targetRecord.totalPensionsCount} Shares
                 </span>
                 <span className="text-[10px] sm:text-[11px] bg-slate-700 text-slate-300 font-bold px-2 py-0.5 rounded truncate max-w-[120px]">
                   {targetRecord.strategyUsed}
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-slate-400 truncate">
                 Pensions Delta: {diffs.pensionsDiff >= 0 ? '+' : ''}{diffs.pensionsDiff} shares
               </p>
             </div>
@@ -658,18 +693,18 @@ export default function HistoryDashboard({
       </div>
 
       {/* 3. Interactive Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 min-w-0 max-w-full">
         {/* Chart A: Multi-Month Allocation Growth Trend */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-sm space-y-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 sm:gap-2">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white font-display flex items-center gap-2">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-sm space-y-4 min-w-0 max-w-full overflow-hidden">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 sm:gap-2 min-w-0">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white font-display flex items-center gap-2 truncate">
               <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
               <span>Disbursed Cash & Staff Count Trend</span>
             </h3>
-            <span className="text-xs text-slate-500 font-medium">{records.length} Archived Months</span>
+            <span className="text-xs text-slate-500 font-medium shrink-0">{records.length} Archived Months</span>
           </div>
 
-          <div className="h-56 sm:h-64 w-full pt-2">
+          <div className="h-56 sm:h-64 w-full pt-2 min-w-0 max-w-full overflow-hidden relative">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={trendChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
@@ -679,11 +714,18 @@ export default function HistoryDashboard({
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.2} />
-                <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} tickLine={false} interval="preserveStartEnd" />
+                <XAxis 
+                  dataKey="name" 
+                  stroke="#94a3b8" 
+                  fontSize={10} 
+                  tickLine={false} 
+                  interval="preserveStartEnd"
+                  tickFormatter={(val: string) => val ? (val.length > 10 ? val.substring(0, 8) + '…' : val) : ''}
+                />
                 <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
                 <Tooltip 
-                  formatter={(value: any) => [`${currencySymbol}${Number(value).toLocaleString()}`, 'Total Cash']}
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#fff', fontSize: '12px' }}
+                  content={<CustomChartTooltip />}
+                  wrapperStyle={{ zIndex: 100 }}
                 />
                 <Area type="monotone" dataKey="Total Disbursed" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorCash)" />
               </AreaChart>
@@ -692,28 +734,30 @@ export default function HistoryDashboard({
         </div>
 
         {/* Chart B: Denomination Note Mix Shift Bar Chart */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-sm space-y-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 sm:gap-2">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white font-display flex items-center gap-2">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-sm space-y-4 min-w-0 max-w-full overflow-hidden">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 sm:gap-2 min-w-0">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white font-display flex items-center gap-2 truncate">
               <Layers className="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" />
               <span>Denomination Note Count Comparison</span>
             </h3>
-            <span className="text-xs text-slate-500 font-medium">{baseRecord?.monthYear} vs {targetRecord?.monthYear}</span>
+            <span className="text-xs text-slate-500 font-medium truncate shrink-0">
+              {formatMonthDisplayName(baseRecord?.monthYear)} vs {formatMonthDisplayName(targetRecord?.monthYear)}
+            </span>
           </div>
 
-          <div className="h-56 sm:h-64 w-full pt-2">
+          <div className="h-56 sm:h-64 w-full pt-2 min-w-0 max-w-full overflow-hidden relative">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={denomChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.2} />
                 <XAxis dataKey="denom" stroke="#94a3b8" fontSize={10} tickLine={false} interval={0} />
                 <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
                 <Tooltip 
-                  formatter={(value: any) => [`${value} notes`, 'Note Count']}
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#fff', fontSize: '12px' }}
+                  content={<CustomChartTooltip />}
+                  wrapperStyle={{ zIndex: 100 }}
                 />
                 <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '4px' }} />
-                <Bar dataKey={baseRecord?.monthYear || 'Base'} fill="#64748b" radius={[6, 6, 0, 0]} />
-                <Bar dataKey={targetRecord?.monthYear || 'Target'} fill="#10b981" radius={[6, 6, 0, 0]} />
+                <Bar dataKey={baseLabel} fill="#64748b" radius={[6, 6, 0, 0]} />
+                <Bar dataKey={targetLabel} fill="#10b981" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -722,32 +766,32 @@ export default function HistoryDashboard({
 
       {/* 4. Staff-level Variance & Difference Table */}
       {diffs && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden space-y-0">
-          <div className="p-4 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-50/50 dark:bg-slate-900/50">
-            <div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white font-display flex items-center gap-2">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden space-y-0 min-w-0 max-w-full">
+          <div className="p-4 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-50/50 dark:bg-slate-900/50 min-w-0">
+            <div className="min-w-0">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white font-display flex items-center gap-2 truncate">
                 <Users className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                <span>Staff Payout Variance Ledger ({baseRecord.monthYear} vs {targetRecord.monthYear})</span>
+                <span>Staff Payout Variance Ledger ({formatMonthDisplayName(baseRecord.monthYear)} vs {formatMonthDisplayName(targetRecord.monthYear)})</span>
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">Detailed individual payout differences, pension changes, and variance percentages</p>
             </div>
             
             <button
               onClick={handleDownloadComparativePDF}
-              className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-300 text-xs font-bold rounded-lg transition-all cursor-pointer border border-emerald-200 dark:border-emerald-800/60 w-full sm:w-auto"
+              className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-300 text-xs font-bold rounded-lg transition-all cursor-pointer border border-emerald-200 dark:border-emerald-800/60 w-full sm:w-auto shrink-0"
             >
               <Download className="w-3.5 h-3.5 shrink-0" />
               <span>Export Variance PDF</span>
             </button>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300 min-w-[640px]">
+          <div className="overflow-x-auto min-w-0 max-w-full">
+            <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300 min-w-[600px]">
               <thead className="bg-slate-100/70 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200 dark:border-slate-800">
                 <tr>
                   <th className="py-3 px-4">Staff Member</th>
-                  <th className="py-3 px-4 text-right">{baseRecord.monthYear} Payout</th>
-                  <th className="py-3 px-4 text-right">{targetRecord.monthYear} Payout</th>
+                  <th className="py-3 px-4 text-right">{formatMonthDisplayName(baseRecord.monthYear)} Payout</th>
+                  <th className="py-3 px-4 text-right">{formatMonthDisplayName(targetRecord.monthYear)} Payout</th>
                   <th className="py-3 px-4 text-right">Variance ({currencySymbol})</th>
                   <th className="py-3 px-4 text-right">% Change</th>
                   <th className="py-3 px-4 text-center">Pension Shift</th>
@@ -805,10 +849,10 @@ export default function HistoryDashboard({
       )}
 
       {/* 5. Complete Archived Monthly Records Directory */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden space-y-0">
-        <div className="p-4 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-50/50 dark:bg-slate-900/50">
-          <div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white font-display flex items-center gap-2">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden space-y-0 min-w-0 max-w-full">
+        <div className="p-4 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-50/50 dark:bg-slate-900/50 min-w-0">
+          <div className="min-w-0">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white font-display flex items-center gap-2 truncate">
               <Calendar className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
               <span>Archived Monthly Distribution Records ({records.length})</span>
             </h3>
@@ -817,7 +861,7 @@ export default function HistoryDashboard({
 
           <button
             onClick={() => setShowArchiveModal(true)}
-            className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer w-full sm:w-auto"
+            className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer w-full sm:w-auto shrink-0"
           >
             <PlusCircle className="w-4 h-4 shrink-0" />
             <span>Archive Active Allocation</span>
@@ -826,11 +870,11 @@ export default function HistoryDashboard({
 
         <div className="divide-y divide-slate-100 dark:divide-slate-800">
           {records.map((rec) => (
-            <div key={rec.id} className="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition-colors">
-              <div className="space-y-1 w-full sm:w-auto">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h4 className="text-base font-bold text-slate-900 dark:text-white font-display">{rec.monthYear}</h4>
-                  <span className="text-[11px] bg-emerald-100 text-emerald-800 font-extrabold px-2 py-0.5 rounded-md dark:bg-emerald-950 dark:text-emerald-300">
+            <div key={rec.id} className="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition-colors min-w-0">
+              <div className="space-y-1 w-full sm:w-auto min-w-0">
+                <div className="flex items-center gap-2 flex-wrap min-w-0">
+                  <h4 className="text-base font-bold text-slate-900 dark:text-white font-display truncate">{formatMonthDisplayName(rec.monthYear)}</h4>
+                  <span className="text-[11px] bg-emerald-100 text-emerald-800 font-extrabold px-2 py-0.5 rounded-md dark:bg-emerald-950 dark:text-emerald-300 shrink-0">
                     {rec.strategyUsed}
                   </span>
                 </div>

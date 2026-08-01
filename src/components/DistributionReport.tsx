@@ -510,7 +510,7 @@ export default function DistributionReport({
       )}
 
       {/* 3. Detailed Distribution breakdown */}
-      <div className="bg-gradient-to-br from-rose-50/60 to-amber-50/30 rounded-2xl p-6 border border-rose-100 shadow-3xs dark:from-slate-900 dark:to-slate-950 dark:border-slate-800" id="breakdown-details-card">
+      <div className="bg-gradient-to-br from-rose-50/60 to-amber-50/30 rounded-2xl p-3.5 sm:p-6 border border-rose-100 shadow-3xs dark:from-slate-900 dark:to-slate-950 dark:border-slate-800 min-w-0 max-w-full overflow-hidden" id="breakdown-details-card">
         {/* Header toolbar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
           <div>
