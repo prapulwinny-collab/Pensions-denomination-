@@ -382,21 +382,21 @@ export default function FunctionaryList({
   const totalPayout = functionaries.reduce((sum, f) => sum + f.amount, 0);
 
   return (
-    <div className="bg-gradient-to-br from-emerald-50/90 to-teal-50/40 rounded-2xl p-3.5 sm:p-6 border border-emerald-100 shadow-xs flex flex-col h-full dark:from-slate-900 dark:to-slate-950 dark:border-slate-800 min-w-0 max-w-full overflow-hidden" id="functionary-list-card">
+    <div className="bg-white dark:bg-slate-900/90 rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col h-full min-w-0 max-w-full overflow-hidden transition-all" id="functionary-list-card">
       {/* Header section */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-800/80">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-emerald-100 text-emerald-700 rounded-xl shadow-3xs dark:bg-emerald-950/45 dark:text-emerald-450 dark:border dark:border-emerald-900/40">
-            <Users className="w-5 h-5 text-emerald-600 dark:text-emerald-400" id="users-icon" />
+          <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-900/50 shrink-0">
+            <Users className="w-5 h-5" id="users-icon" />
           </div>
           <div>
-            <h2 className="font-display font-bold text-emerald-950 dark:text-emerald-100 text-base tracking-tight">Functionaries & Payouts</h2>
-            <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">Manage monthly staff list & target payout shares</p>
+            <h2 className="font-display font-extrabold text-slate-900 dark:text-white text-base tracking-tight">Functionaries & Payouts</h2>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Manage staff list & target payout shares</p>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
           <label
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100/80 hover:bg-emerald-200 border border-emerald-200/50 rounded-lg text-xs font-bold text-emerald-800 transition-all cursor-pointer shadow-3xs dark:bg-emerald-950/40 dark:hover:bg-emerald-950/70 dark:border-emerald-900/60 dark:text-emerald-300"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 rounded-xl text-xs font-bold text-slate-700 transition-all cursor-pointer shadow-3xs dark:bg-slate-800 dark:hover:bg-slate-700 dark:border-slate-700 dark:text-slate-200"
             id="csv-import-btn"
           >
             <Upload className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
@@ -410,19 +410,19 @@ export default function FunctionaryList({
           </label>
           <button
             onClick={() => setShowBulkModal(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-teal-100/80 hover:bg-teal-200 border border-teal-200/50 rounded-lg text-xs font-bold text-teal-800 transition-all cursor-pointer shadow-3xs dark:bg-teal-950/40 dark:hover:bg-teal-950/70 dark:border-teal-900/60 dark:text-teal-300"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 rounded-xl text-xs font-bold text-slate-700 transition-all cursor-pointer shadow-3xs dark:bg-slate-800 dark:hover:bg-slate-700 dark:border-slate-700 dark:text-slate-200"
             id="bulk-import-btn"
           >
-            <Upload className="w-3.5 h-3.5 text-teal-600 dark:text-teal-450" />
+            <Upload className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
             Paste Text
           </button>
           <button
             onClick={() => setShowSaveTemplateModal(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-emerald-50 border border-emerald-200 rounded-lg text-xs font-bold text-emerald-850 transition-all cursor-pointer shadow-3xs disabled:opacity-50 dark:bg-slate-800 dark:hover:bg-slate-700 dark:border-slate-750 dark:text-emerald-300"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-800 transition-all cursor-pointer shadow-3xs disabled:opacity-50 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/50 dark:border-emerald-800 dark:text-emerald-300"
             id="save-template-btn"
             disabled={functionaries.length === 0}
           >
-            <Save className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-450" />
+            <Save className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
             Save List
           </button>
         </div>
@@ -430,8 +430,8 @@ export default function FunctionaryList({
 
       {/* Templates Row */}
       {templates.length > 0 && (
-        <div className="mb-4 bg-white/80 p-3 rounded-xl border border-emerald-100 shadow-3xs dark:bg-slate-800/80 dark:border-slate-700/60" id="templates-container">
-          <span className="text-[10px] font-extrabold text-emerald-800/60 dark:text-emerald-400/65 uppercase tracking-widest block mb-2 font-display">
+        <div className="mb-3.5 bg-slate-50/80 p-3 rounded-xl border border-slate-200/80 dark:bg-slate-800/50 dark:border-slate-700/60" id="templates-container">
+          <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-2 font-display">
             Saved Lists / Monthly Templates:
           </span>
           <div className="flex flex-wrap gap-2">
@@ -439,13 +439,13 @@ export default function FunctionaryList({
               <div
                 key={tpl.name}
                 onClick={() => handleLoadTemplate(tpl)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white hover:bg-emerald-50 border border-emerald-100 rounded-lg text-xs text-emerald-800 cursor-pointer transition-all shadow-3xs group dark:bg-slate-900 dark:hover:bg-slate-850 dark:border-slate-800 dark:text-slate-300"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-200 rounded-xl text-xs text-slate-800 cursor-pointer transition-all shadow-3xs group dark:bg-slate-900 dark:hover:bg-slate-800 dark:border-slate-700 dark:text-slate-200"
               >
                 <span className="font-bold">{tpl.name}</span>
-                <span className="text-[10px] text-emerald-500 font-mono font-bold dark:text-emerald-400">({tpl.list.length})</span>
+                <span className="text-[10px] text-emerald-600 font-mono font-bold dark:text-emerald-400">({tpl.list.length})</span>
                 <button
                   onClick={(e) => handleDeleteTemplate(tpl.name, e)}
-                  className="p-0.5 text-emerald-400 hover:text-rose-500 rounded-md transition-all opacity-0 group-hover:opacity-100"
+                  className="p-0.5 text-slate-400 hover:text-rose-500 rounded-md transition-all opacity-0 group-hover:opacity-100"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -455,25 +455,28 @@ export default function FunctionaryList({
         </div>
       )}
 
-      {/* Quick setup row */}
-      <div className="flex items-center justify-between gap-2 mb-4 bg-white/80 p-3 rounded-xl border border-emerald-100 shadow-3xs dark:bg-slate-800/85 dark:border-slate-700/60">
-        <span className="text-xs text-emerald-950 dark:text-emerald-200 font-bold font-display">
-          Total: <span className="font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100 dark:bg-emerald-950/40 dark:border-emerald-900/50 dark:text-emerald-300">{functionaries.length}</span> staff members
+      {/* Quick setup & count row */}
+      <div className="flex items-center justify-between gap-2 mb-3.5 bg-slate-50/80 p-3 rounded-xl border border-slate-200/80 dark:bg-slate-800/40 dark:border-slate-700/60">
+        <span className="text-xs text-slate-800 dark:text-slate-200 font-bold font-display flex items-center gap-2">
+          <span>Total Staff:</span>
+          <span className="font-extrabold text-emerald-700 bg-emerald-100/80 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:bg-emerald-950/60 dark:border-emerald-800 dark:text-emerald-300">
+            {functionaries.length} members
+          </span>
         </span>
         <div className="flex gap-2 items-center">
           {showConfirmReset ? (
-            <div className="flex items-center gap-1.5 bg-rose-50 px-2 py-1 rounded-md border border-rose-100 dark:bg-rose-950/40 dark:border-rose-900/50 animate-in fade-in zoom-in-95 duration-150">
-              <span className="text-[10px] font-bold text-rose-700 dark:text-rose-450">Are you sure?</span>
+            <div className="flex items-center gap-1.5 bg-rose-50 px-2.5 py-1 rounded-xl border border-rose-200 dark:bg-rose-950/40 dark:border-rose-900/50 animate-in fade-in zoom-in-95 duration-150">
+              <span className="text-[10px] font-bold text-rose-700 dark:text-rose-300">Clear list?</span>
               <button
                 onClick={handleClearAll}
-                className="px-2 py-0.5 text-[9px] font-black bg-rose-600 hover:bg-rose-700 text-white rounded cursor-pointer transition-colors"
+                className="px-2 py-0.5 text-[10px] font-black bg-rose-600 hover:bg-rose-700 text-white rounded-lg cursor-pointer transition-colors shadow-3xs"
                 id="confirm-reset-btn"
               >
                 Yes
               </button>
               <button
                 onClick={() => setShowConfirmReset(false)}
-                className="px-2 py-0.5 text-[9px] font-black bg-white hover:bg-gray-100 text-gray-600 border border-gray-200 rounded cursor-pointer transition-colors dark:bg-slate-750 dark:hover:bg-slate-700 dark:text-slate-300 dark:border-slate-600"
+                className="px-2 py-0.5 text-[10px] font-black bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 rounded-lg cursor-pointer transition-colors dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 dark:border-slate-600"
                 id="cancel-reset-btn"
               >
                 No
@@ -482,7 +485,7 @@ export default function FunctionaryList({
           ) : (
             <button
               onClick={() => setShowConfirmReset(true)}
-              className="px-2.5 py-1.5 text-[10px] font-bold bg-rose-100/70 text-rose-700 hover:bg-rose-200 hover:text-rose-900 rounded-lg border border-rose-200/50 transition-all cursor-pointer shadow-3xs dark:bg-rose-950/40 dark:text-rose-350 dark:border-rose-900/60 dark:hover:bg-rose-900/50"
+              className="px-2.5 py-1 text-[11px] font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg border border-rose-200 transition-all cursor-pointer dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900/60"
               id="clear-staff-btn"
             >
               Reset List
@@ -492,15 +495,15 @@ export default function FunctionaryList({
       </div>
 
       {/* Main Table Container */}
-      <div className="flex-1 overflow-y-auto overflow-x-auto max-h-[380px] min-h-[250px] border border-emerald-100 rounded-xl mb-4 pr-1 bg-white/90 shadow-3xs dark:border-slate-800 dark:bg-slate-900/80 min-w-0 max-w-full">
+      <div className="flex-1 overflow-y-auto overflow-x-auto max-h-[400px] min-h-[260px] border border-slate-200/80 rounded-xl mb-4 bg-white dark:border-slate-800 dark:bg-slate-900/60 min-w-0 max-w-full custom-scrollbar">
         {functionaries.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-white/50 rounded-xl dark:bg-slate-900/50" id="empty-staff-box">
-            <Users className="w-10 h-10 text-emerald-400/70 dark:text-emerald-500/50 mb-3" />
-            <h3 className="font-display font-bold text-emerald-950 dark:text-emerald-100 text-sm mb-1">
+          <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-slate-50/50 rounded-xl dark:bg-slate-900/50" id="empty-staff-box">
+            <Users className="w-10 h-10 text-emerald-500/60 dark:text-emerald-400/50 mb-3" />
+            <h3 className="font-display font-extrabold text-slate-900 dark:text-white text-sm mb-1">
               No Functionaries Added
             </h3>
-            <p className="text-xs text-emerald-600 dark:text-slate-400 font-medium max-w-xs mb-4">
-              Add your staff members one by one, import CSV, or paste from a spreadsheet.
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium max-w-xs mb-4">
+              Add staff members individually, import CSV, or paste text.
             </p>
             <button
               onClick={handleAddFunctionary}
@@ -513,18 +516,18 @@ export default function FunctionaryList({
         ) : (
           <table className="w-full text-left border-collapse" id="staff-table">
             <thead>
-              <tr className="bg-emerald-50 text-emerald-900 text-[10px] uppercase font-bold tracking-wider sticky top-0 border-b border-emerald-100/80 z-10 font-display dark:bg-slate-800/90 dark:text-slate-200 dark:border-b dark:border-slate-750">
-                <th className="py-2.5 px-4 w-12 text-center">#</th>
-                <th className="py-2.5 px-3">Full Name</th>
-                <th className="py-2.5 px-3 w-32 text-center">No of Pensions</th>
+              <tr className="bg-slate-100/90 text-slate-700 dark:bg-slate-800/90 dark:text-slate-200 text-[10px] uppercase font-bold tracking-wider sticky top-0 border-b border-slate-200 dark:border-slate-700/80 z-10 font-display">
+                <th className="py-2.5 px-3.5 w-12 text-center">#</th>
+                <th className="py-2.5 px-3">Full Name & Remarks</th>
+                <th className="py-2.5 px-3 w-32 text-center">Pensions</th>
                 <th className="py-2.5 px-3 w-40 text-right">Target Payout</th>
-                <th className="py-2.5 px-4 w-12 text-center">Action</th>
+                <th className="py-2.5 px-3.5 w-12 text-center">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-emerald-50 dark:divide-slate-800/50">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
               {functionaries.map((func, index) => (
-                <tr key={func.id} className="hover:bg-emerald-50/30 dark:hover:bg-slate-800/40 transition-all" id={`staff-row-${func.id}`}>
-                  <td className="py-2 px-4 text-center text-xs font-mono font-bold text-emerald-400 dark:text-slate-500">
+                <tr key={func.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors" id={`staff-row-${func.id}`}>
+                  <td className="py-2 px-3 text-center text-xs font-mono font-bold text-slate-400 dark:text-slate-500">
                     {index + 1}
                   </td>
                   <td className="py-2 px-3">
@@ -532,7 +535,7 @@ export default function FunctionaryList({
                       type="text"
                       value={func.name}
                       onChange={e => handleUpdateField(func.id, 'name', e.target.value)}
-                      className="w-full bg-transparent hover:bg-white focus:bg-white dark:hover:bg-slate-800 dark:focus:bg-slate-800 px-2 py-1.5 rounded-md border border-transparent focus:border-emerald-300 hover:border-emerald-200 dark:focus:border-emerald-700 dark:hover:border-slate-700 text-xs text-emerald-950 dark:text-white font-bold focus:outline-none transition-all"
+                      className="w-full bg-transparent hover:bg-white focus:bg-white dark:hover:bg-slate-800 dark:focus:bg-slate-800 px-2.5 py-1 rounded-lg border border-transparent hover:border-slate-200 focus:border-indigo-400 dark:focus:border-indigo-600 text-xs text-slate-900 dark:text-white font-bold focus:outline-none transition-all"
                       placeholder="e.g. John Doe"
                       required
                     />
@@ -540,7 +543,7 @@ export default function FunctionaryList({
                       type="text"
                       value={func.notes || ''}
                       onChange={e => handleUpdateField(func.id, 'notes', e.target.value)}
-                      className="w-full bg-transparent hover:bg-white/80 dark:hover:bg-slate-800/80 focus:bg-white dark:focus:bg-slate-800 px-2 py-0.5 mt-0.5 rounded border border-transparent hover:border-emerald-100 dark:hover:border-slate-750 focus:border-emerald-300 dark:focus:border-emerald-850 text-[10px] text-emerald-800/80 dark:text-slate-400 placeholder-emerald-600/40 dark:placeholder-slate-500 focus:outline-none transition-all font-medium"
+                      className="w-full bg-transparent hover:bg-white focus:bg-white dark:hover:bg-slate-800 dark:focus:bg-slate-800 px-2.5 py-0.5 mt-0.5 rounded-md border border-transparent hover:border-slate-200 focus:border-indigo-400 text-[10px] text-slate-500 dark:text-slate-400 placeholder-slate-400 focus:outline-none transition-all font-medium"
                       placeholder="Remarks / payout instructions..."
                     />
                   </td>
@@ -550,14 +553,14 @@ export default function FunctionaryList({
                       min="1"
                       value={func.pensions || 1}
                       onChange={e => handleUpdateField(func.id, 'pensions', e.target.value)}
-                      className="w-20 bg-transparent hover:bg-white focus:bg-white dark:hover:bg-slate-800 dark:focus:bg-slate-800 px-2 py-1.5 rounded-md border border-transparent focus:border-emerald-300 hover:border-emerald-200 dark:focus:border-emerald-700 dark:hover:border-slate-700 text-xs font-mono font-black text-center text-emerald-950 dark:text-white focus:outline-none transition-all mx-auto"
+                      className="w-20 bg-transparent hover:bg-white focus:bg-white dark:hover:bg-slate-800 dark:focus:bg-slate-800 px-2 py-1 rounded-lg border border-transparent hover:border-slate-200 focus:border-indigo-400 text-xs font-mono font-black text-center text-slate-900 dark:text-white focus:outline-none transition-all mx-auto"
                       placeholder="1"
                       required
                     />
                   </td>
                   <td className="py-2 px-3 text-right">
                     <div className="inline-flex items-center relative w-full">
-                      <span className="absolute left-2.5 text-xs text-emerald-500 dark:text-emerald-400 font-bold select-none font-mono">
+                      <span className="absolute left-2.5 text-xs text-slate-400 font-bold select-none font-mono">
                         {selectedCurrency.symbol}
                       </span>
                       <input
@@ -565,16 +568,16 @@ export default function FunctionaryList({
                         min="0"
                         value={func.amount || ''}
                         onChange={e => handleUpdateField(func.id, 'amount', e.target.value)}
-                        className="w-full bg-transparent hover:bg-white focus:bg-white dark:hover:bg-slate-800 dark:focus:bg-slate-800 pl-7 pr-2.5 py-1.5 rounded-md border border-transparent focus:border-emerald-300 hover:border-emerald-200 dark:focus:border-emerald-700 dark:hover:border-slate-700 text-xs font-mono font-black text-right text-emerald-950 dark:text-white focus:outline-none transition-all"
+                        className="w-full bg-transparent hover:bg-white focus:bg-white dark:hover:bg-slate-800 dark:focus:bg-slate-800 pl-7 pr-2.5 py-1 rounded-lg border border-transparent hover:border-slate-200 focus:border-indigo-400 text-xs font-mono font-black text-right text-slate-900 dark:text-white focus:outline-none transition-all"
                         placeholder="0"
                         required
                       />
                     </div>
                   </td>
-                  <td className="py-2 px-4 text-center">
+                  <td className="py-2 px-3 text-center">
                     <button
                       onClick={() => handleDelete(func.id)}
-                      className="p-1.5 text-emerald-400 dark:text-slate-500 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-all cursor-pointer"
+                      className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-all cursor-pointer"
                       title="Remove"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -589,10 +592,10 @@ export default function FunctionaryList({
 
       {/* Footer list actions */}
       {functionaries.length > 0 && (
-        <div className="flex items-center justify-between mt-auto pt-4 border-t border-emerald-100 dark:border-t dark:border-slate-800">
+        <div className="flex items-center justify-between mt-auto pt-3.5 border-t border-slate-200 dark:border-slate-800">
           <button
             onClick={handleAddFunctionary}
-            className="flex items-center gap-1.5 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-3xs cursor-pointer dark:bg-emerald-750 dark:hover:bg-emerald-600"
+            className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-3xs cursor-pointer dark:bg-emerald-700 dark:hover:bg-emerald-600"
             id="add-staff-row-btn"
           >
             <Plus className="w-3.5 h-3.5" />

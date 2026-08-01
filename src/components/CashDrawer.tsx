@@ -43,99 +43,102 @@ export default function CashDrawer({
   const totalValue = denominations.reduce((sum, d) => sum + (stock[d] || 0) * d, 0);
 
   return (
-    <div className="bg-gradient-to-br from-violet-50/90 to-purple-50/40 rounded-2xl p-3.5 sm:p-6 border border-violet-100 shadow-xs flex flex-col h-full dark:from-slate-900 dark:to-slate-950 dark:border-slate-800 min-w-0 max-w-full overflow-hidden" id="cash-drawer-card">
-      <div className="flex items-center justify-between mb-5">
+    <div className="bg-white dark:bg-slate-900/90 rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col h-full min-w-0 max-w-full overflow-hidden transition-all" id="cash-drawer-card">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-slate-800/80">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-violet-100 text-violet-700 rounded-xl shadow-3xs dark:bg-violet-950/40 dark:text-violet-400 dark:border dark:border-violet-900/40">
-            <Banknote className="w-5 h-5 text-violet-600 dark:text-violet-400" id="banknote-icon" />
+          <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl border border-indigo-100 dark:bg-indigo-950/50 dark:text-indigo-400 dark:border-indigo-900/50 shrink-0">
+            <Banknote className="w-5 h-5" id="banknote-icon" />
           </div>
           <div>
-            <h2 className="font-display font-bold text-violet-950 dark:text-violet-100 text-base tracking-tight">Cash Inventory</h2>
-            <p className="text-[11px] text-violet-600 dark:text-violet-400 font-medium">Configure your starting cash vault</p>
+            <h2 className="font-display font-extrabold text-slate-900 dark:text-white text-base tracking-tight">Cash Vault Inventory</h2>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Starting physical notes & coins count</p>
           </div>
         </div>
       </div>
 
       <div className="flex-1 flex flex-col h-full" id="limited-drawer-container">
-        {/* Action buttons */}
-        <div className="flex items-center justify-between gap-2 mb-4">
-          <span className="text-xs font-semibold text-violet-800 dark:text-violet-300">Physical Stock Count:</span>
-          <div className="flex gap-1.5">
-            <button
-              onClick={handleClearAll}
-              className="px-2.5 py-1.5 text-[10px] font-bold bg-rose-100/80 text-rose-800 hover:bg-rose-200 hover:text-rose-900 rounded-lg border border-rose-200/50 transition-all cursor-pointer shadow-3xs dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900/60"
-              id="clear-cash-btn"
-            >
-              Reset All
-            </button>
-          </div>
+        {/* Action bar */}
+        <div className="flex items-center justify-between gap-2 mb-3.5">
+          <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-indigo-500" />
+            <span>Vault Denominations</span>
+          </span>
+          <button
+            onClick={handleClearAll}
+            className="px-2.5 py-1 text-[11px] font-bold bg-rose-50 text-rose-700 hover:bg-rose-100/80 rounded-lg border border-rose-200/60 transition-all cursor-pointer dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900/60"
+            id="clear-cash-btn"
+          >
+            Zero Out Vault
+          </button>
         </div>
 
         {/* Denominations List */}
-        <div className="space-y-2 overflow-y-auto max-h-[380px] pr-1 flex-1 mb-4" id="denom-list">
+        <div className="space-y-2.5 overflow-y-auto max-h-[400px] pr-1 flex-1 mb-4 custom-scrollbar" id="denom-list">
           {denominations.map(denom => {
             const count = stock[denom] || 0;
             const value = count * denom;
             return (
               <div
                 key={denom}
-                className="bg-white/80 p-3 rounded-xl border border-violet-100 flex items-center justify-between gap-3 transition-all hover:bg-white shadow-3xs dark:bg-slate-800/80 dark:border-slate-700/50 dark:hover:bg-slate-800"
+                className="bg-slate-50/70 p-3 rounded-xl border border-slate-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all hover:bg-white hover:border-slate-300 dark:bg-slate-800/40 dark:border-slate-700/60 dark:hover:bg-slate-800/80 shadow-3xs"
                 id={`denom-card-${denom}`}
               >
-                {/* Left Section: Denomination & Value */}
+                {/* Left Section: Denomination Pill & Value */}
                 <div className="flex items-center gap-3">
-                  <div className="w-14 h-11 bg-violet-100/80 hover:bg-violet-100 text-violet-800 border border-violet-200/60 rounded-lg flex items-center justify-center text-xs font-black font-mono transition-colors dark:bg-violet-950/40 dark:text-violet-300 dark:border-violet-900/60">
+                  <div className="w-16 h-10 bg-indigo-600 text-white border border-indigo-700 rounded-xl flex items-center justify-center text-xs font-extrabold font-mono shadow-3xs shrink-0 dark:bg-indigo-950 dark:text-indigo-200 dark:border-indigo-800">
                     {selectedCurrency.symbol}{denom}
                   </div>
                   <div>
-                    <div className="text-[10px] font-extrabold text-violet-450 dark:text-violet-500 uppercase tracking-widest font-display">
-                      Total Value
+                    <div className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                      Subtotal
                     </div>
-                    <div className="text-xs font-black text-violet-950 dark:text-white font-mono">
+                    <div className="text-xs font-black text-slate-900 dark:text-white font-mono">
                       {formatCurrency(value, selectedCurrency.symbol)}
                     </div>
                   </div>
                 </div>
 
-                {/* Right Section: Tactile inputs & quick increments */}
-                <div className="flex items-center gap-2">
+                {/* Right Section: Stepper & Quick Adjustment Controls */}
+                <div className="flex items-center gap-2 self-end sm:self-auto flex-wrap">
                   {/* Quick Add / Subtract Pills */}
                   <div className="grid grid-cols-2 gap-1">
                     <button
                       onClick={() => adjustCount(denom, 100)}
-                      className="px-1.5 py-0.5 text-[9px] font-bold bg-white hover:bg-violet-50 text-violet-700 border border-violet-100 rounded-lg transition-all cursor-pointer shadow-3xs dark:bg-slate-900 dark:hover:bg-slate-800 dark:text-slate-350 dark:border-slate-700 text-center whitespace-nowrap min-w-[38px]"
+                      className="px-2 py-0.5 text-[9px] font-bold bg-white hover:bg-indigo-50 text-indigo-700 border border-slate-200 rounded-lg transition-all cursor-pointer shadow-3xs dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-indigo-300 dark:border-slate-700 text-center whitespace-nowrap min-w-[38px]"
                       title="Add 100 notes"
                     >
                       +100
                     </button>
                     <button
                       onClick={() => adjustCount(denom, 1000)}
-                      className="px-1.5 py-0.5 text-[9px] font-bold bg-white hover:bg-violet-50 text-violet-700 border border-violet-100 rounded-lg transition-all cursor-pointer shadow-3xs dark:bg-slate-900 dark:hover:bg-slate-800 dark:text-slate-350 dark:border-slate-700 text-center whitespace-nowrap min-w-[44px]"
+                      className="px-2 py-0.5 text-[9px] font-bold bg-white hover:bg-indigo-50 text-indigo-700 border border-slate-200 rounded-lg transition-all cursor-pointer shadow-3xs dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-indigo-300 dark:border-slate-700 text-center whitespace-nowrap min-w-[42px]"
                       title="Add 1000 notes"
                     >
                       +1000
                     </button>
                     <button
                       onClick={() => adjustCount(denom, -100)}
-                      className="px-1.5 py-0.5 text-[9px] font-bold bg-white hover:bg-rose-50 text-rose-600 hover:text-rose-700 border border-slate-100 hover:border-rose-200/50 rounded-lg transition-all cursor-pointer shadow-3xs dark:bg-slate-900 dark:hover:bg-rose-950/20 dark:text-rose-400 dark:border-slate-700 text-center whitespace-nowrap min-w-[38px]"
+                      className="px-2 py-0.5 text-[9px] font-bold bg-white hover:bg-rose-50 text-rose-600 border border-slate-200 rounded-lg transition-all cursor-pointer shadow-3xs dark:bg-slate-800 dark:hover:bg-rose-950/30 dark:text-rose-400 dark:border-slate-700 text-center whitespace-nowrap min-w-[38px]"
                       title="Subtract 100 notes"
                     >
                       -100
                     </button>
                     <button
                       onClick={() => adjustCount(denom, -1000)}
-                      className="px-1.5 py-0.5 text-[9px] font-bold bg-white hover:bg-rose-50 text-rose-600 hover:text-rose-700 border border-slate-100 hover:border-rose-200/50 rounded-lg transition-all cursor-pointer shadow-3xs dark:bg-slate-900 dark:hover:bg-rose-950/20 dark:text-rose-400 dark:border-slate-700 text-center whitespace-nowrap min-w-[44px]"
+                      className="px-2 py-0.5 text-[9px] font-bold bg-white hover:bg-rose-50 text-rose-600 border border-slate-200 rounded-lg transition-all cursor-pointer shadow-3xs dark:bg-slate-800 dark:hover:bg-rose-950/30 dark:text-rose-400 dark:border-slate-700 text-center whitespace-nowrap min-w-[42px]"
                       title="Subtract 1000 notes"
                     >
                       -1000
                     </button>
                   </div>
 
-                  {/* Simple Counter Group */}
-                  <div className="flex items-center bg-white rounded-lg border border-violet-100 shadow-3xs p-0.5 dark:bg-slate-900 dark:border-slate-700">
+                  {/* Simple Stepper Input Group */}
+                  <div className="flex items-center bg-white rounded-xl border border-slate-200 shadow-3xs p-0.5 dark:bg-slate-900 dark:border-slate-700">
                     <button
                       onClick={() => adjustCount(denom, -1)}
-                      className="w-7 h-7 flex items-center justify-center text-violet-400 hover:text-violet-900 dark:text-slate-500 dark:hover:text-slate-200 font-extrabold hover:bg-violet-50 rounded-md transition-colors cursor-pointer select-none text-xs"
+                      className="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white font-black hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer select-none text-xs"
+                      aria-label={`Decrease ${denom} count`}
                     >
                       -
                     </button>
@@ -145,11 +148,12 @@ export default function CashDrawer({
                       value={count || ''}
                       placeholder="0"
                       onChange={e => handleCountChange(denom, e.target.value)}
-                      className="w-10 text-center py-0.5 text-xs font-mono font-black text-violet-950 dark:text-white bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      className="w-12 text-center py-0.5 text-xs font-mono font-black text-slate-900 dark:text-white bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                     <button
                       onClick={() => adjustCount(denom, 1)}
-                      className="w-7 h-7 flex items-center justify-center text-violet-400 hover:text-violet-900 dark:text-slate-500 dark:hover:text-slate-200 font-extrabold hover:bg-violet-50 rounded-md transition-colors cursor-pointer select-none text-xs"
+                      className="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white font-black hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer select-none text-xs"
+                      aria-label={`Increase ${denom} count`}
                     >
                       +
                     </button>
@@ -161,10 +165,10 @@ export default function CashDrawer({
         </div>
 
         {/* Drawer summary total */}
-        <div className="pt-4 border-t border-violet-100 bg-violet-100/30 -mx-6 -mb-6 px-6 pb-6 rounded-b-2xl mt-auto dark:border-slate-800 dark:bg-slate-900/50">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-violet-800 dark:text-slate-350">Total Vault Cash:</span>
-            <span className="text-lg font-black font-display text-violet-700 dark:text-violet-400">
+        <div className="pt-3.5 pb-1 border-t border-slate-200 dark:border-slate-800 mt-auto">
+          <div className="flex items-center justify-between bg-indigo-50/80 dark:bg-indigo-950/30 p-3.5 rounded-xl border border-indigo-100 dark:border-indigo-900/40">
+            <span className="text-xs font-bold text-indigo-950 dark:text-indigo-200">Total Available Vault Cash:</span>
+            <span className="text-lg font-black font-display text-indigo-700 dark:text-indigo-300">
               {formatCurrency(totalValue, selectedCurrency.symbol)}
             </span>
           </div>

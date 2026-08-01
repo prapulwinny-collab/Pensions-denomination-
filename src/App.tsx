@@ -229,17 +229,17 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gradient-to-tr from-slate-50 via-sky-50/20 to-indigo-50/10 text-slate-900 font-sans pb-16 antialiased selection:bg-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950/20 dark:text-slate-100 overflow-x-hidden w-full">
       {/* 1. Header & Navigation Rail (Hidden during printing) */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-20 no-print dark:bg-slate-900/80 dark:border-slate-800 w-full overflow-hidden" id="app-header">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3.5 sm:py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 sm:gap-4 min-w-0">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-indigo-100 dark:shadow-none shrink-0">
+      <header className="bg-white/80 backdrop-blur-xl border-b border-slate-200/80 sticky top-0 z-30 no-print dark:bg-slate-900/80 dark:border-slate-800/80 w-full overflow-hidden transition-all shadow-xs" id="app-header">
+        <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-3.5 flex flex-col md:flex-row md:items-center md:justify-between gap-3 sm:gap-4 min-w-0">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="w-11 h-11 bg-gradient-to-br from-indigo-600 via-indigo-600 to-violet-700 rounded-2xl flex items-center justify-center text-white shadow-md shadow-indigo-200/50 dark:shadow-none shrink-0 ring-1 ring-black/5 dark:ring-white/10">
               <Coins className="w-5 h-5 text-white" id="header-logo-icon" />
             </div>
             <div className="min-w-0">
-              <h1 className="font-display font-extrabold text-lg sm:text-xl tracking-tight text-slate-950 dark:text-white flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <h1 className="font-display font-extrabold text-lg sm:text-xl tracking-tight text-slate-950 dark:text-white flex flex-wrap items-center gap-2">
                 <span className="truncate">Cash Payout & Denominations</span>
-                <span className="text-[10px] bg-indigo-100/70 text-indigo-800 font-black px-2 py-0.5 rounded-full border border-indigo-200/50 flex items-center gap-0.5 font-sans dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-900/60 shrink-0">
-                  <Sparkles className="w-2.5 h-2.5" /> Core Engine v2
+                <span className="text-[10px] bg-indigo-50 text-indigo-700 font-extrabold px-2.5 py-0.5 rounded-full border border-indigo-200/60 flex items-center gap-1 font-sans dark:bg-indigo-950/80 dark:text-indigo-300 dark:border-indigo-800/80 shrink-0 shadow-3xs">
+                  <Sparkles className="w-2.5 h-2.5 text-indigo-500" /> Core Engine v2
                 </span>
               </h1>
               <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium truncate">
@@ -251,12 +251,12 @@ export default function App() {
           {/* User metadata, navigation tabs & Dark Mode Toggle */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 text-xs font-bold text-slate-600 dark:text-slate-300 w-full md:w-auto min-w-0">
             {/* Main Tabs */}
-            <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200/60 dark:border-slate-700/60 w-full sm:w-auto min-w-0" id="main-navigation-tabs">
+            <div className="flex bg-slate-100/80 dark:bg-slate-800/80 p-1 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 w-full sm:w-auto min-w-0 shadow-inner" id="main-navigation-tabs">
               <button
                 onClick={() => setActiveTab('workspace')}
-                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg transition-all cursor-pointer text-[11px] sm:text-xs font-bold whitespace-nowrap ${
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-1.5 rounded-xl transition-all cursor-pointer text-[11px] sm:text-xs font-bold whitespace-nowrap ${
                   activeTab === 'workspace'
-                    ? 'bg-white text-indigo-900 shadow-sm dark:bg-slate-700 dark:text-white'
+                    ? 'bg-white text-indigo-950 shadow-sm border border-slate-200/60 dark:bg-slate-700 dark:text-white dark:border-slate-600'
                     : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
                 }`}
               >
@@ -266,9 +266,9 @@ export default function App() {
 
               <button
                 onClick={() => setActiveTab('history')}
-                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg transition-all cursor-pointer text-[11px] sm:text-xs font-bold whitespace-nowrap ${
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-1.5 rounded-xl transition-all cursor-pointer text-[11px] sm:text-xs font-bold whitespace-nowrap ${
                   activeTab === 'history'
-                    ? 'bg-white text-emerald-900 shadow-sm dark:bg-slate-700 dark:text-white'
+                    ? 'bg-white text-emerald-950 shadow-sm border border-slate-200/60 dark:bg-slate-700 dark:text-white dark:border-slate-600'
                     : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
                 }`}
               >
@@ -277,15 +277,15 @@ export default function App() {
               </button>
             </div>
 
-            <div className="flex items-center justify-between sm:justify-end gap-2.5 w-full sm:w-auto">
-              <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200/60 shadow-3xs dark:bg-slate-800/80 dark:border-slate-700/60 dark:text-slate-200 text-xs">
-                <Calendar className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
-                <span className="font-display font-bold">{formatDateDDMMYYYY()}</span>
+            <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
+              <div className="flex items-center gap-1.5 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200/80 dark:border-slate-700/80 shadow-3xs text-xs font-semibold">
+                <Calendar className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                <span className="font-display font-bold text-slate-800 dark:text-slate-200">{formatDateDDMMYYYY()}</span>
               </div>
 
               <button
                 onClick={() => setDarkMode(!darkMode)}
-                className="p-2 bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200/60 shadow-3xs rounded-lg transition-all cursor-pointer flex items-center justify-center dark:bg-slate-800/80 dark:hover:bg-slate-700 dark:text-slate-300 dark:border-slate-700/60 shrink-0"
+                className="p-2 bg-white hover:bg-slate-50 text-slate-600 border border-slate-200/80 shadow-3xs rounded-xl transition-all cursor-pointer flex items-center justify-center dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 dark:border-slate-700/80 shrink-0"
                 aria-label="Toggle theme"
                 id="theme-toggle-btn"
               >

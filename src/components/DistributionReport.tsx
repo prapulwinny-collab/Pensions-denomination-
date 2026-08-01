@@ -398,74 +398,86 @@ export default function DistributionReport({
       {/* On-Screen Interactive Report (Hidden in print) */}
       <div className="space-y-6 no-print">
         {/* 1. Metric Cards Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4" id="metrics-row">
-        <div className="bg-gradient-to-br from-amber-50 to-amber-100/40 p-5 rounded-2xl border border-amber-100 shadow-3xs dark:from-slate-900 dark:to-slate-950 dark:border-slate-800">
-          <span className="text-[10px] font-extrabold text-amber-700/80 uppercase tracking-widest block font-display dark:text-amber-450">
-            Target Payout Total
-          </span>
-          <span className="text-2xl font-black text-amber-950 dark:text-white font-display mt-1 block">
-            {formatCurrency(totalPayout, selectedCurrency.symbol)}
-          </span>
-          <span className="text-[10px] text-amber-600 dark:text-slate-400 font-bold mt-0.5 block font-sans">
-            Requested by {functionaries.length} staff
-          </span>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4" id="metrics-row">
+          <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs dark:border-slate-800 transition-all hover:shadow-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block font-display dark:text-slate-400">
+                Target Payout Total
+              </span>
+              <span className="w-2 h-2 rounded-full bg-indigo-500" />
+            </div>
+            <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-display mt-2 block">
+              {formatCurrency(totalPayout, selectedCurrency.symbol)}
+            </span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-1 block font-sans">
+              Requested by {functionaries.length} staff
+            </span>
+          </div>
+
+          <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs dark:border-slate-800 transition-all hover:shadow-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block font-display dark:text-slate-400">
+                Allocated Cash
+              </span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            </div>
+            <span className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 font-display mt-2 block">
+              {formatCurrency(summary.totalAllocated, selectedCurrency.symbol)}
+            </span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-1 block font-sans flex items-center gap-1">
+              <CheckCircle2 className="w-3 h-3 text-emerald-500 inline shrink-0" />
+              {totalPayout > 0 ? `${Math.round((summary.totalAllocated / totalPayout) * 100)}% Fulfilled` : '0%'}
+            </span>
+          </div>
+
+          {!isUnlimited ? (
+            <>
+              <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs dark:border-slate-800 transition-all hover:shadow-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block font-display dark:text-slate-400">
+                    Leftover in Drawer
+                  </span>
+                  <span className="w-2 h-2 rounded-full bg-amber-500" />
+                </div>
+                <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-display mt-2 block">
+                  {formatCurrency(summary.unallocatedCash, selectedCurrency.symbol)}
+                </span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-1 block font-sans">
+                  Undistributed in drawer
+                </span>
+              </div>
+
+              <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs dark:border-slate-800 transition-all hover:shadow-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block font-display dark:text-slate-400">
+                    Cash Shortfall
+                  </span>
+                  <span className={`w-2 h-2 rounded-full ${summary.unpaidPayout > 0 ? 'bg-rose-500 animate-pulse' : 'bg-slate-300 dark:bg-slate-700'}`} />
+                </div>
+                <span className={`text-xl sm:text-2xl font-black font-display mt-2 block ${summary.unpaidPayout > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-400 dark:text-slate-500'}`}>
+                  {formatCurrency(summary.unpaidPayout, selectedCurrency.symbol)}
+                </span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-1 block font-sans">
+                  Unsatisfied payout total
+                </span>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="bg-gradient-to-br from-indigo-50 to-violet-50 p-4 sm:p-5 rounded-2xl border border-indigo-100 dark:from-slate-900 dark:to-slate-950 dark:border-slate-800 col-span-2 flex flex-col justify-center shadow-xs">
+                <span className="text-[10px] font-extrabold text-indigo-700 uppercase tracking-wider block font-display dark:text-indigo-400">
+                  Perfect Change Mode Active
+                </span>
+                <span className="text-sm font-black text-slate-900 dark:text-white font-display mt-1 block">
+                  Unlimited Cash Reserves Enabled
+                </span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 block font-sans">
+                  No note shortages. Exact breakdown calculated.
+                </span>
+              </div>
+            </>
+          )}
         </div>
-
-        <div className="bg-gradient-to-br from-rose-50 to-rose-100/40 p-5 rounded-2xl border border-rose-100 shadow-3xs dark:from-slate-900 dark:to-slate-950 dark:border-slate-800">
-          <span className="text-[10px] font-extrabold text-rose-700/80 uppercase tracking-widest block font-display dark:text-rose-450">
-            Allocated Cash
-          </span>
-          <span className="text-2xl font-black text-rose-950 dark:text-white font-display mt-1 block">
-            {formatCurrency(summary.totalAllocated, selectedCurrency.symbol)}
-          </span>
-          <span className="text-[10px] text-rose-600 dark:text-slate-400 mt-0.5 font-bold block flex items-center gap-0.5 font-sans">
-            <CheckCircle2 className="w-3 h-3 inline text-rose-500" />
-            {totalPayout > 0 ? `${Math.round((summary.totalAllocated / totalPayout) * 100)}% Fulfilled` : '0%'}
-          </span>
-        </div>
-
-        {!isUnlimited ? (
-          <>
-            <div className="bg-gradient-to-br from-orange-50 to-orange-100/40 p-5 rounded-2xl border border-orange-100 shadow-3xs dark:from-slate-900 dark:to-slate-950 dark:border-slate-800">
-              <span className="text-[10px] font-extrabold text-orange-700/80 uppercase tracking-widest block font-display dark:text-orange-450">
-                Leftover in Drawer
-              </span>
-              <span className="text-2xl font-black text-orange-950 dark:text-white font-display mt-1 block">
-                {formatCurrency(summary.unallocatedCash, selectedCurrency.symbol)}
-              </span>
-              <span className="text-[10px] text-orange-600 dark:text-slate-400 font-bold mt-0.5 block font-sans">
-                Notes not distributed
-              </span>
-            </div>
-
-            <div className="bg-gradient-to-br from-amber-50 to-amber-100/40 p-5 rounded-2xl border border-amber-100 shadow-3xs dark:from-slate-900 dark:to-slate-950 dark:border-slate-800">
-              <span className="text-[10px] font-extrabold text-amber-700/80 uppercase tracking-widest block font-display dark:text-amber-450">
-                Cash Shortfall
-              </span>
-              <span className={`text-2xl font-black font-display mt-1 block ${summary.unpaidPayout > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400'}`}>
-                {formatCurrency(summary.unpaidPayout, selectedCurrency.symbol)}
-              </span>
-              <span className="text-[10px] text-amber-600 dark:text-slate-400 font-bold mt-0.5 block font-sans">
-                Unsatisfied payout total
-              </span>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="bg-gradient-to-br from-amber-50 to-rose-50/50 p-5 rounded-2xl border border-amber-100 shadow-3xs col-span-2 flex flex-col justify-center dark:from-slate-900 dark:to-slate-950 dark:border-slate-800">
-              <span className="text-[10px] font-extrabold text-rose-700/80 uppercase tracking-widest block font-display dark:text-rose-450">
-                Perfect Change Mode
-              </span>
-              <span className="text-sm font-black text-rose-950 dark:text-white font-display mt-1 block">
-                Unlimited Cash Reserves Enabled
-              </span>
-              <span className="text-[10px] text-rose-600 dark:text-slate-400 font-bold mt-0.5 block font-sans">
-                No note shortages. Shows exact notes needed for withdrawal.
-              </span>
-            </div>
-          </>
-        )}
-      </div>
 
       {/* 2. Mode-Specific Displays */}
       {isUnlimited && (
@@ -510,13 +522,13 @@ export default function DistributionReport({
       )}
 
       {/* 3. Detailed Distribution breakdown */}
-      <div className="bg-gradient-to-br from-rose-50/60 to-amber-50/30 rounded-2xl p-3.5 sm:p-6 border border-rose-100 shadow-3xs dark:from-slate-900 dark:to-slate-950 dark:border-slate-800 min-w-0 max-w-full overflow-hidden" id="breakdown-details-card">
+      <div className="bg-white dark:bg-slate-900/90 rounded-2xl p-4 sm:p-6 border border-slate-200/80 shadow-sm dark:border-slate-800 min-w-0 max-w-full overflow-hidden transition-all" id="breakdown-details-card">
         {/* Header toolbar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-slate-100 dark:border-slate-800">
           <div>
-            <h2 className="font-display font-extrabold text-rose-950 dark:text-white text-base tracking-tight">Staff Payout Breakdown</h2>
-            <p className="text-[11px] text-rose-700 dark:text-slate-400 font-medium">
-              Review and adjust notes assigned to each functionary using <b>{isEquivalentMode ? 'Equivalent Division' : 'Greedy Division'}</b>{ensureAllDenominations ? ' with ' : ''}<b>{ensureAllDenominations ? 'Variety Mode (All Denominations)' : ''}</b>.
+            <h2 className="font-display font-extrabold text-slate-900 dark:text-white text-base tracking-tight">Staff Payout Breakdown</h2>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+              Review and adjust notes assigned using <b>{isEquivalentMode ? 'Equivalent Division' : 'Greedy Division'}</b>{ensureAllDenominations ? ' with ' : ''}<b>{ensureAllDenominations ? 'Variety Mode' : ''}</b>.
             </p>
           </div>
 
@@ -524,45 +536,45 @@ export default function DistributionReport({
             {hasAnyOverrides && (
               <button
                 onClick={onClearOverrides}
-                className="flex items-center gap-1.5 px-3.5 py-2 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-xl text-xs font-bold border border-rose-200/50 transition-all cursor-pointer shadow-3xs dark:bg-rose-950/40 dark:hover:bg-rose-950/70 dark:text-rose-350 dark:border-rose-900/60"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs font-bold border border-rose-200 transition-all cursor-pointer shadow-3xs dark:bg-rose-950/40 dark:hover:bg-rose-900/50 dark:text-rose-300 dark:border-rose-900/60"
                 id="reset-overrides-btn"
               >
-                <RefreshCw className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+                <RefreshCw className="w-3.5 h-3.5" />
                 Reset Adjustments
               </button>
             )}
             <button
               onClick={handleCopyText}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-rose-50 border border-rose-100 rounded-xl text-xs font-bold text-rose-800 transition-all cursor-pointer shadow-3xs dark:bg-slate-800 dark:hover:bg-slate-700 dark:border-slate-700 dark:text-slate-250"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 transition-all cursor-pointer shadow-3xs dark:bg-slate-800 dark:hover:bg-slate-700 dark:border-slate-700 dark:text-slate-200"
               id="copy-report-btn"
             >
               {copied ? (
                 <>
-                  <Check className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
-                  <span className="text-rose-600 dark:text-rose-400">Copied!</span>
+                  <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <span className="text-emerald-600 dark:text-emerald-400">Copied!</span>
                 </>
               ) : (
                 <>
-                  <Clipboard className="w-3.5 h-3.5 text-rose-500 dark:text-rose-450" />
+                  <Clipboard className="w-3.5 h-3.5 text-indigo-500" />
                   Copy Summary
                 </>
               )}
             </button>
             <button
               onClick={handleExportCSV}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-rose-50 border border-rose-100 rounded-xl text-xs font-bold text-rose-800 transition-all cursor-pointer shadow-3xs dark:bg-slate-800 dark:hover:bg-slate-700 dark:border-slate-700 dark:text-slate-250"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 transition-all cursor-pointer shadow-3xs dark:bg-slate-800 dark:hover:bg-slate-700 dark:border-slate-700 dark:text-slate-200"
               id="export-csv-btn"
             >
-              <Download className="w-3.5 h-3.5 text-rose-500 dark:text-rose-450" />
+              <Download className="w-3.5 h-3.5 text-indigo-500" />
               CSV Export
             </button>
             <button
               onClick={handleDownloadPDF}
               disabled={isGeneratingPDF}
-              className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold shadow-3xs transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-3xs transition-all cursor-pointer ${
                 isGeneratingPDF
                   ? 'bg-amber-100 border border-amber-200 text-amber-800 cursor-not-allowed dark:bg-amber-950/40 dark:border-amber-900/40 dark:text-amber-300'
-                  : 'bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white'
+                  : 'bg-indigo-600 hover:bg-indigo-700 text-white'
               }`}
               id="download-pdf-btn"
             >
