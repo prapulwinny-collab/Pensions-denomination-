@@ -11,17 +11,26 @@ import DistributionReport from './components/DistributionReport';
 export default function App() {
   // Dark mode state
   const [darkMode, setDarkMode] = useState<boolean>(() => {
-    return localStorage.getItem('darkMode') === 'true' || 
-      (!('darkMode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    try {
+      const stored = localStorage.getItem('darkMode');
+      if (stored !== null) return stored === 'true';
+      return typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    } catch {
+      return false;
+    }
   });
 
   useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('darkMode', 'true');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('darkMode', 'false');
+    try {
+      if (darkMode) {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('darkMode', 'true');
+      } else {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('darkMode', 'false');
+      }
+    } catch {
+      // Ignore iframe storage access restrictions
     }
   }, [darkMode]);
 
@@ -63,7 +72,7 @@ export default function App() {
 
   // Manual Note overrides for specific functionaries
   const [manualOverrides, setManualOverrides] = useState<Record<string, PayoutAllocation | null>>({});
-  const [isEquivalentMode, setIsEquivalentMode] = useState<boolean>(false);
+  const [isEquivalentMode, setIsEquivalentMode] = useState<boolean>(true);
   const [ensureAllDenominations, setEnsureAllDenominations] = useState<boolean>(true);
 
   // Reset overrides when changing currency, mode, or strategy to prevent state issues

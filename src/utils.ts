@@ -100,11 +100,15 @@ export function calculateDistribution(
    * Ensures that ALL functionaries who can accept `denom` get as close to equal
    * number of notes of `denom` as possible, capped only by their individual payout limits.
    */
-  const distributeDenomWaterFilling = (denom: number, maxPerPerson?: number) => {
+  const distributeDenomWaterFilling = (
+    denom: number,
+    maxPerPerson?: number,
+    targetFunctionaries: typeof activeAutoFunctionaries = activeAutoFunctionaries
+  ) => {
     let avail = isUnlimited ? Infinity : (leftoverNotes[denom] || 0);
     if (avail <= 0) return;
 
-    let active = activeAutoFunctionaries
+    let active = targetFunctionaries
       .filter(f => remainingPayouts[f.id] >= denom)
       .map(f => {
         const alreadyAllocated = autoNotes[f.id][denom] || 0;
@@ -196,21 +200,74 @@ export function calculateDistribution(
     }
   };
 
-  // Variety mode: pre-allocate 1 note of each available denomination round-robin
-  if (ensureAllDenominations) {
-    const availableDenomsAsc = [...denominations]
-      .filter(d => (leftoverNotes[d] || 0) > 0 || isUnlimited)
-      .sort((a, b) => a - b);
+  // Dynamically determine highest available denomination with stock > 0 (or unlimited)
+  const availableDenomsWithStock = denominations.filter(
+    d => (leftoverNotes[d] || 0) > 0 || isUnlimited
+  );
+  const availableSortedDesc = [...availableDenomsWithStock].sort((a, b) => b - a);
 
-    availableDenomsAsc.forEach(denom => {
-      distributeDenomWaterFilling(denom, 1);
+  if (availableSortedDesc.length > 0 && (isEquivalentMode || !isUnlimited)) {
+    const highestDenom = availableSortedDesc[0]; // Highest available note (e.g. 500)
+    const lowerDenomsAsc = availableSortedDesc
+      .filter(d => d < highestDenom)
+      .sort((a, b) => a - b); // Lower notes sorted ascending (e.g., 10, 20, 50, 100, 200)
+
+    // Step A: Variety Mode (if enabled) - pre-allocate 1 note of each available denomination
+    if (ensureAllDenominations) {
+      const availableAsc = [...availableSortedDesc].sort((a, b) => a - b);
+      availableAsc.forEach(denom => {
+        distributeDenomWaterFilling(denom, 1);
+      });
+    }
+
+    // Step B: Lower Denominations Equitable Balancing
+    // Distribute lower denomination notes (e.g. 200, 100, 50, 20, 10) equally across ALL active functionaries
+    // so that the burden of small notes is shared equally among everyone, rather than dumped on a single person.
+    lowerDenomsAsc.forEach(denom => {
+      const avail = isUnlimited ? Infinity : (leftoverNotes[denom] || 0);
+      if (avail <= 0) return;
+
+      const eligible = activeAutoFunctionaries.filter(f => remainingPayouts[f.id] >= denom);
+      if (eligible.length === 0) return;
+
+      if (isUnlimited) {
+        if (isEquivalentMode) {
+          distributeDenomWaterFilling(denom, 5, eligible);
+        }
+      } else {
+        const m = eligible.length;
+        const equalQuota = Math.floor(avail / m);
+
+        if (equalQuota > 0) {
+          distributeDenomWaterFilling(denom, equalQuota, eligible);
+        } else {
+          // If available stock < eligible count, give 1 note each to eligible people
+          distributeDenomWaterFilling(denom, 1, eligible);
+        }
+      }
+    });
+
+    // Step C: Highest Denomination Allocation
+    // Allocate highest denomination notes (e.g. 500) equitably via Water Filling
+    distributeDenomWaterFilling(highestDenom);
+
+    // Step D: Residual Sweep of Leftover Stock
+    // Sweep through all denominations from highest to lowest to cover any remaining unpaid amounts
+    sortedDenoms.forEach(denom => {
+      distributeDenomWaterFilling(denom);
+    });
+  } else {
+    // Fallback or Greedy Unlimited Mode: allocate denominations top-down
+    if (ensureAllDenominations) {
+      const availableAsc = [...availableSortedDesc].sort((a, b) => a - b);
+      availableAsc.forEach(denom => {
+        distributeDenomWaterFilling(denom, 1);
+      });
+    }
+    sortedDenoms.forEach(denom => {
+      distributeDenomWaterFilling(denom);
     });
   }
-
-  // Main distribution: allocate denominations using water-filling from highest to lowest
-  sortedDenoms.forEach(denom => {
-    distributeDenomWaterFilling(denom);
-  });
 
   // Finalize allocations
   activeAutoFunctionaries.forEach(f => {
