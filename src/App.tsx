@@ -125,54 +125,79 @@ export default function App() {
     return true;
   });
 
-  // Persistent storage auto-save effects
+  // Persistent Memory Active Toggle State
+  const [isPersistentMemoryActive, setIsPersistentMemoryActive] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('cash_dist_persistentMemoryActive');
+      if (saved !== null) return saved === 'true';
+    } catch (e) {
+      console.warn('Failed to parse persistentMemoryActive from localStorage', e);
+    }
+    return true;
+  });
+
   useEffect(() => {
+    try {
+      localStorage.setItem('cash_dist_persistentMemoryActive', String(isPersistentMemoryActive));
+    } catch (e) {
+      console.error('Error saving persistentMemoryActive preference', e);
+    }
+  }, [isPersistentMemoryActive]);
+
+  // Persistent storage auto-save effects (guarded by isPersistentMemoryActive)
+  useEffect(() => {
+    if (!isPersistentMemoryActive) return;
     try {
       localStorage.setItem('cash_dist_stock', JSON.stringify(stock));
     } catch (e) {
       console.error('Error saving stock to persistent memory', e);
     }
-  }, [stock]);
+  }, [stock, isPersistentMemoryActive]);
 
   useEffect(() => {
+    if (!isPersistentMemoryActive) return;
     try {
       localStorage.setItem('cash_dist_functionaries', JSON.stringify(functionaries));
     } catch (e) {
       console.error('Error saving functionaries to persistent memory', e);
     }
-  }, [functionaries]);
+  }, [functionaries, isPersistentMemoryActive]);
 
   useEffect(() => {
+    if (!isPersistentMemoryActive) return;
     try {
       localStorage.setItem('cash_dist_manualOverrides', JSON.stringify(manualOverrides));
     } catch (e) {
       console.error('Error saving manualOverrides to persistent memory', e);
     }
-  }, [manualOverrides]);
+  }, [manualOverrides, isPersistentMemoryActive]);
 
   useEffect(() => {
+    if (!isPersistentMemoryActive) return;
     try {
       localStorage.setItem('cash_dist_isEquivalentMode', String(isEquivalentMode));
     } catch (e) {
       console.error('Error saving isEquivalentMode to persistent memory', e);
     }
-  }, [isEquivalentMode]);
+  }, [isEquivalentMode, isPersistentMemoryActive]);
 
   useEffect(() => {
+    if (!isPersistentMemoryActive) return;
     try {
       localStorage.setItem('cash_dist_ensureAllDenominations', String(ensureAllDenominations));
     } catch (e) {
       console.error('Error saving ensureAllDenominations to persistent memory', e);
     }
-  }, [ensureAllDenominations]);
+  }, [ensureAllDenominations, isPersistentMemoryActive]);
 
   useEffect(() => {
+    if (!isPersistentMemoryActive) return;
     try {
       localStorage.setItem('cash_dist_currency', JSON.stringify(selectedCurrency));
     } catch (e) {
       console.error('Error saving currency to persistent memory', e);
     }
-  }, [selectedCurrency]);
+  }, [selectedCurrency, isPersistentMemoryActive]);
 
   // Reset overrides when changing currency, mode, or strategy to prevent state issues
   useEffect(() => {
@@ -289,22 +314,73 @@ export default function App() {
           <>
             {/* Banner callout explaining persistent memory state */}
 
-        <div className="bg-gradient-to-br from-emerald-50 to-teal-50/50 border border-emerald-100 shadow-3xs rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 no-print dark:from-emerald-950/30 dark:to-teal-950/10 dark:border-emerald-900/50" id="sample-data-callout">
+        <div 
+          className={`border shadow-3xs rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 no-print transition-colors ${
+            isPersistentMemoryActive
+              ? 'bg-gradient-to-br from-emerald-50 to-teal-50/50 border-emerald-100 dark:from-emerald-950/30 dark:to-teal-950/10 dark:border-emerald-900/50'
+              : 'bg-gradient-to-br from-rose-50 to-slate-50 border-rose-200/80 dark:from-rose-950/20 dark:to-slate-900/60 dark:border-rose-900/50'
+          }`} 
+          id="sample-data-callout"
+        >
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-emerald-500 text-white rounded-xl shadow-3xs">
+            <div className={`p-2.5 rounded-xl shadow-3xs text-white transition-colors ${
+              isPersistentMemoryActive ? 'bg-emerald-500' : 'bg-rose-500'
+            }`}>
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-emerald-850 dark:text-emerald-300 font-display flex items-center gap-1.5">
-                <span>Persistent Memory Active</span>
-                <span className="text-[10px] bg-emerald-100 text-emerald-800 font-extrabold px-2 py-0.5 rounded-md dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">Auto-Saved</span>
+              <h4 className={`text-sm font-bold font-display flex items-center gap-2 flex-wrap ${
+                isPersistentMemoryActive
+                  ? 'text-emerald-850 dark:text-emerald-300'
+                  : 'text-rose-850 dark:text-rose-300'
+              }`}>
+                <span className="flex items-center gap-2">
+                  <span className="relative flex h-2.5 w-2.5 items-center justify-center shrink-0" id="persistent-memory-glow-dot">
+                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                      isPersistentMemoryActive ? 'bg-emerald-400' : 'bg-rose-400'
+                    }`} />
+                    <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                      isPersistentMemoryActive
+                        ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.9)]'
+                        : 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.9)]'
+                    }`} />
+                  </span>
+                  <span>{isPersistentMemoryActive ? 'Persistent Memory Active' : 'Persistent Memory Inactive'}</span>
+                </span>
+
+                <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md border ${
+                  isPersistentMemoryActive
+                    ? 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800'
+                    : 'bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-950 dark:text-rose-300 dark:border-rose-800'
+                }`}>
+                  {isPersistentMemoryActive ? 'Auto-Saved' : 'Disabled'}
+                </span>
               </h4>
-              <p className="text-xs text-emerald-650 dark:text-emerald-400/90 font-medium mt-0.5">
-                All staff details, payouts, denomination stocks, and strategy choices are continuously saved in local memory.
+              <p className={`text-xs font-medium mt-0.5 ${
+                isPersistentMemoryActive
+                  ? 'text-emerald-650 dark:text-emerald-400/90'
+                  : 'text-rose-650 dark:text-rose-400/90'
+              }`}>
+                {isPersistentMemoryActive
+                  ? 'All staff details, payouts, denomination stocks, and strategy choices are continuously saved in local memory.'
+                  : 'Local auto-saving is currently paused. Changes will not be saved to browser storage.'}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 self-end sm:self-auto">
+          <div className="flex items-center gap-2 self-end sm:self-auto shrink-0 flex-wrap">
+            <button
+              onClick={() => setIsPersistentMemoryActive(!isPersistentMemoryActive)}
+              className={`px-3 py-2 text-xs font-bold rounded-xl border transition-all cursor-pointer shadow-3xs flex items-center gap-1.5 ${
+                isPersistentMemoryActive
+                  ? 'bg-white hover:bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-slate-800 dark:hover:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/60'
+                  : 'bg-white hover:bg-rose-50 text-rose-800 border-rose-200 dark:bg-slate-800 dark:hover:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900/60'
+              }`}
+              title="Toggle Persistent Memory State"
+              id="toggle-persistent-memory-btn"
+            >
+              <span className={`w-2 h-2 rounded-full shrink-0 ${isPersistentMemoryActive ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+              <span>{isPersistentMemoryActive ? 'Pause Memory' : 'Enable Memory'}</span>
+            </button>
             <button
               onClick={() => {
                 if (window.confirm('Clear all staff members and zero out the cash drawer?')) {
@@ -315,7 +391,7 @@ export default function App() {
                   setManualOverrides({});
                 }
               }}
-              className="px-3 py-2 bg-white hover:bg-emerald-50 text-emerald-800 text-xs font-bold rounded-xl border border-emerald-200 transition-all cursor-pointer shadow-3xs whitespace-nowrap dark:bg-slate-800 dark:hover:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/60"
+              className="px-3 py-2 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 transition-all cursor-pointer shadow-3xs whitespace-nowrap dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 dark:border-slate-700"
             >
               Clear Sheet & Start Fresh
             </button>
