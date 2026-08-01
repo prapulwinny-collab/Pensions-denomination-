@@ -224,12 +224,12 @@ export default function App() {
           </div>
 
           {/* User metadata, navigation tabs & Dark Mode Toggle */}
-          <div className="flex items-center gap-3 text-xs font-bold text-slate-600 dark:text-slate-300">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 text-xs font-bold text-slate-600 dark:text-slate-300 w-full sm:w-auto">
             {/* Main Tabs */}
-            <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200/60 dark:border-slate-700/60" id="main-navigation-tabs">
+            <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200/60 dark:border-slate-700/60 w-full sm:w-auto" id="main-navigation-tabs">
               <button
                 onClick={() => setActiveTab('workspace')}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-all cursor-pointer text-xs font-bold ${
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-1.5 rounded-lg transition-all cursor-pointer text-xs font-bold ${
                   activeTab === 'workspace'
                     ? 'bg-white text-indigo-900 shadow-sm dark:bg-slate-700 dark:text-white'
                     : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
@@ -241,7 +241,7 @@ export default function App() {
 
               <button
                 onClick={() => setActiveTab('history')}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-all cursor-pointer text-xs font-bold ${
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-1.5 rounded-lg transition-all cursor-pointer text-xs font-bold ${
                   activeTab === 'history'
                     ? 'bg-white text-emerald-900 shadow-sm dark:bg-slate-700 dark:text-white'
                     : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
@@ -252,19 +252,21 @@ export default function App() {
               </button>
             </div>
 
-            <div className="hidden md:flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/60 shadow-3xs dark:bg-slate-800/80 dark:border-slate-700/60 dark:text-slate-200">
-              <Calendar className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
-              <span className="font-display">{formatDateDDMMYYYY()}</span>
-            </div>
+            <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
+              <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/60 shadow-3xs dark:bg-slate-800/80 dark:border-slate-700/60 dark:text-slate-200">
+                <Calendar className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+                <span className="font-display">{formatDateDDMMYYYY()}</span>
+              </div>
 
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className="p-2 bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200/60 shadow-3xs rounded-lg transition-all cursor-pointer flex items-center justify-center dark:bg-slate-800/80 dark:hover:bg-slate-700 dark:text-slate-300 dark:border-slate-700/60"
-              aria-label="Toggle theme"
-              id="theme-toggle-btn"
-            >
-              {darkMode ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-indigo-600" />}
-            </button>
+              <button
+                onClick={() => setDarkMode(!darkMode)}
+                className="p-2 bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200/60 shadow-3xs rounded-lg transition-all cursor-pointer flex items-center justify-center dark:bg-slate-800/80 dark:hover:bg-slate-700 dark:text-slate-300 dark:border-slate-700/60"
+                aria-label="Toggle theme"
+                id="theme-toggle-btn"
+              >
+                {darkMode ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-indigo-600" />}
+              </button>
+            </div>
           </div>
         </div>
       </header>
