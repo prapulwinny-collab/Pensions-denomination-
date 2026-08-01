@@ -1,6 +1,6 @@
-import { Banknote, Sliders, RefreshCw } from 'lucide-react';
+import { Banknote, Sliders } from 'lucide-react';
 import { Currency, DenominationStock } from '../types';
-import { formatCurrency, getSampleStock } from '../utils';
+import { formatCurrency } from '../utils';
 
 interface CashDrawerProps {
   selectedCurrency: Currency;
@@ -40,15 +40,6 @@ export default function CashDrawer({
     onUpdateStock(cleared);
   };
 
-  const handleLoadSample = () => {
-    const sample = getSampleStock(selectedCurrency.code);
-    const updated: DenominationStock = {};
-    denominations.forEach(d => {
-      updated[d] = sample[d] || 0;
-    });
-    onUpdateStock(updated);
-  };
-
   const totalValue = denominations.reduce((sum, d) => sum + (stock[d] || 0) * d, 0);
 
   return (
@@ -70,14 +61,6 @@ export default function CashDrawer({
         <div className="flex items-center justify-between gap-2 mb-4">
           <span className="text-xs font-semibold text-violet-800 dark:text-violet-300">Physical Stock Count:</span>
           <div className="flex gap-1.5">
-            <button
-              onClick={handleLoadSample}
-              className="flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-bold bg-emerald-100/80 text-emerald-800 hover:bg-emerald-200 hover:text-emerald-900 rounded-lg border border-emerald-200/50 transition-all cursor-pointer shadow-3xs dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/60"
-              id="load-sample-cash-btn"
-            >
-              <RefreshCw className="w-3 h-3" />
-              Fill Sample
-            </button>
             <button
               onClick={handleClearAll}
               className="px-2.5 py-1.5 text-[10px] font-bold bg-rose-100/80 text-rose-800 hover:bg-rose-200 hover:text-rose-900 rounded-lg border border-rose-200/50 transition-all cursor-pointer shadow-3xs dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900/60"

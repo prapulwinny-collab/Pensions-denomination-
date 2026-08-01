@@ -307,18 +307,6 @@ export default function App() {
           <div className="flex items-center gap-2 self-end sm:self-auto">
             <button
               onClick={() => {
-                if (window.confirm('Reset to initial preloaded sample simulation? Any current custom edits will be replaced.')) {
-                  setFunctionaries(getSampleFunctionaries());
-                  setStock(getSampleStock('INR'));
-                  setManualOverrides({});
-                }
-              }}
-              className="px-3 py-2 bg-emerald-100/70 hover:bg-emerald-200/80 text-emerald-900 text-xs font-bold rounded-xl border border-emerald-200 transition-all cursor-pointer shadow-3xs whitespace-nowrap dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 dark:text-emerald-300 dark:border-emerald-800/80"
-            >
-              Restore Sample Data
-            </button>
-            <button
-              onClick={() => {
                 if (window.confirm('Clear all staff members and zero out the cash drawer?')) {
                   setFunctionaries([]);
                   const emptyStock: DenominationStock = {};
