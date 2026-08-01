@@ -47,3 +47,28 @@ export const PRESET_CURRENCIES: Currency[] = [
     denominations: [500, 200, 100, 50, 20, 10, 5],
   },
 ];
+
+export interface ArchivedFunctionaryAllocation {
+  id: string;
+  name: string;
+  amount: number;
+  pensionCount: number;
+  notes: PayoutAllocation;
+  status: 'fully_paid' | 'partially_paid' | 'overpaid' | 'unpaid';
+}
+
+export interface AllocationArchiveRecord {
+  id: string; // e.g., "2026-07"
+  monthYear: string; // e.g., "July 2026"
+  timestamp: number;
+  currencySymbol: string;
+  totalDisbursed: number;
+  totalTargetPayout: number;
+  totalStaffCount: number;
+  totalPensionsCount: number;
+  strategyUsed: string; // "Equivalent Division" or "Greedy Division"
+  denominationBreakdown: Record<number, number>; // total physical notes used per denomination
+  functionaryAllocations: ArchivedFunctionaryAllocation[];
+  memo?: string;
+}
+

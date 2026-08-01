@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Coins, ShieldCheck, Mail, Calendar, Sparkles, Sun, Moon } from 'lucide-react';
+import { Coins, ShieldCheck, Mail, Calendar, Sparkles, Sun, Moon, Archive, LayoutGrid, BarChart2 } from 'lucide-react';
 import { Currency, DenominationStock, Functionary, PayoutAllocation } from './types';
 import { calculateDistribution, getSampleFunctionaries, getSampleStock, formatDateDDMMYYYY } from './utils';
 
@@ -7,8 +7,12 @@ import { calculateDistribution, getSampleFunctionaries, getSampleStock, formatDa
 import CashDrawer from './components/CashDrawer';
 import FunctionaryList from './components/FunctionaryList';
 import DistributionReport from './components/DistributionReport';
+import HistoryDashboard from './components/HistoryDashboard';
 
 export default function App() {
+  // Navigation Tab State
+  const [activeTab, setActiveTab] = useState<'workspace' | 'history'>('workspace');
+
   // Dark mode state
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     try {
@@ -57,23 +61,118 @@ export default function App() {
     denominations: [500, 200, 100, 50, 20, 10, 5],
   };
 
-  const [selectedCurrency, setSelectedCurrency] = useState<Currency>(defaultCurrency);
+  const [selectedCurrency, setSelectedCurrency] = useState<Currency>(() => {
+    try {
+      const saved = localStorage.getItem('cash_dist_currency');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.warn('Failed to parse currency from localStorage', e);
+    }
+    return defaultCurrency;
+  });
   const isUnlimited = false;
 
-  // Stock of denominations
+  // Stock of denominations (persistent storage)
   const [stock, setStock] = useState<DenominationStock>(() => {
+    try {
+      const saved = localStorage.getItem('cash_dist_stock');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.warn('Failed to parse stock from localStorage', e);
+    }
     return getSampleStock('INR');
   });
 
-  // List of functionaries
+  // List of functionaries (persistent storage)
   const [functionaries, setFunctionaries] = useState<Functionary[]>(() => {
+    try {
+      const saved = localStorage.getItem('cash_dist_functionaries');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.warn('Failed to parse functionaries from localStorage', e);
+    }
     return getSampleFunctionaries();
   });
 
-  // Manual Note overrides for specific functionaries
-  const [manualOverrides, setManualOverrides] = useState<Record<string, PayoutAllocation | null>>({});
-  const [isEquivalentMode, setIsEquivalentMode] = useState<boolean>(true);
-  const [ensureAllDenominations, setEnsureAllDenominations] = useState<boolean>(true);
+  // Manual Note overrides for specific functionaries (persistent storage)
+  const [manualOverrides, setManualOverrides] = useState<Record<string, PayoutAllocation | null>>(() => {
+    try {
+      const saved = localStorage.getItem('cash_dist_manualOverrides');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.warn('Failed to parse manualOverrides from localStorage', e);
+    }
+    return {};
+  });
+
+  const [isEquivalentMode, setIsEquivalentMode] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('cash_dist_isEquivalentMode');
+      if (saved !== null) return saved === 'true';
+    } catch (e) {
+      console.warn('Failed to parse isEquivalentMode from localStorage', e);
+    }
+    return true;
+  });
+
+  const [ensureAllDenominations, setEnsureAllDenominations] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('cash_dist_ensureAllDenominations');
+      if (saved !== null) return saved === 'true';
+    } catch (e) {
+      console.warn('Failed to parse ensureAllDenominations from localStorage', e);
+    }
+    return true;
+  });
+
+  // Persistent storage auto-save effects
+  useEffect(() => {
+    try {
+      localStorage.setItem('cash_dist_stock', JSON.stringify(stock));
+    } catch (e) {
+      console.error('Error saving stock to persistent memory', e);
+    }
+  }, [stock]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('cash_dist_functionaries', JSON.stringify(functionaries));
+    } catch (e) {
+      console.error('Error saving functionaries to persistent memory', e);
+    }
+  }, [functionaries]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('cash_dist_manualOverrides', JSON.stringify(manualOverrides));
+    } catch (e) {
+      console.error('Error saving manualOverrides to persistent memory', e);
+    }
+  }, [manualOverrides]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('cash_dist_isEquivalentMode', String(isEquivalentMode));
+    } catch (e) {
+      console.error('Error saving isEquivalentMode to persistent memory', e);
+    }
+  }, [isEquivalentMode]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('cash_dist_ensureAllDenominations', String(ensureAllDenominations));
+    } catch (e) {
+      console.error('Error saving ensureAllDenominations to persistent memory', e);
+    }
+  }, [ensureAllDenominations]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('cash_dist_currency', JSON.stringify(selectedCurrency));
+    } catch (e) {
+      console.error('Error saving currency to persistent memory', e);
+    }
+  }, [selectedCurrency]);
 
   // Reset overrides when changing currency, mode, or strategy to prevent state issues
   useEffect(() => {
@@ -124,16 +223,40 @@ export default function App() {
             </div>
           </div>
 
-          {/* User metadata & date status & Dark Mode Toggle */}
+          {/* User metadata, navigation tabs & Dark Mode Toggle */}
           <div className="flex items-center gap-3 text-xs font-bold text-slate-600 dark:text-slate-300">
-            <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/60 shadow-3xs dark:bg-slate-800/80 dark:border-slate-700/60 dark:text-slate-200">
+            {/* Main Tabs */}
+            <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200/60 dark:border-slate-700/60" id="main-navigation-tabs">
+              <button
+                onClick={() => setActiveTab('workspace')}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-all cursor-pointer text-xs font-bold ${
+                  activeTab === 'workspace'
+                    ? 'bg-white text-indigo-900 shadow-sm dark:bg-slate-700 dark:text-white'
+                    : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
+                }`}
+              >
+                <LayoutGrid className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                <span>Current Allocation</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('history')}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-all cursor-pointer text-xs font-bold ${
+                  activeTab === 'history'
+                    ? 'bg-white text-emerald-900 shadow-sm dark:bg-slate-700 dark:text-white'
+                    : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
+                }`}
+              >
+                <Archive className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span>History & Analytics</span>
+              </button>
+            </div>
+
+            <div className="hidden md:flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/60 shadow-3xs dark:bg-slate-800/80 dark:border-slate-700/60 dark:text-slate-200">
               <Calendar className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
               <span className="font-display">{formatDateDDMMYYYY()}</span>
             </div>
-            <div className="hidden md:flex items-center gap-1.5 bg-indigo-50/75 text-indigo-800 px-3 py-1.5 rounded-lg border border-indigo-100 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-900/60">
-              <Mail className="w-3.5 h-3.5 text-indigo-500" />
-              <span className="font-semibold text-[11px] font-mono">prapulwinny@gmail.com</span>
-            </div>
+
             <button
               onClick={() => setDarkMode(!darkMode)}
               className="p-2 bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200/60 shadow-3xs rounded-lg transition-all cursor-pointer flex items-center justify-center dark:bg-slate-800/80 dark:hover:bg-slate-700 dark:text-slate-300 dark:border-slate-700/60"
@@ -146,35 +269,67 @@ export default function App() {
         </div>
       </header>
 
-      {/* 2. Interactive Workspace Section */}
+      {/* 2. Interactive Workspace Section OR History Dashboard Section */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8" id="app-main-workspace">
-        
-        {/* Banner callout explaining sample state */}
+        {activeTab === 'history' ? (
+          <HistoryDashboard
+            selectedCurrency={selectedCurrency}
+            currentFunctionaries={functionaries}
+            currentSummary={distributionSummary}
+            isEquivalentMode={isEquivalentMode}
+            ensureAllDenominations={ensureAllDenominations}
+            onRestoreFunctionaries={(restored) => {
+              setFunctionaries(restored);
+              setActiveTab('workspace');
+            }}
+          />
+        ) : (
+          <>
+            {/* Banner callout explaining persistent memory state */}
+
         <div className="bg-gradient-to-br from-emerald-50 to-teal-50/50 border border-emerald-100 shadow-3xs rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 no-print dark:from-emerald-950/30 dark:to-teal-950/10 dark:border-emerald-900/50" id="sample-data-callout">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-emerald-500 text-white rounded-xl shadow-3xs">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-emerald-850 dark:text-emerald-300 font-display">Preloaded Monthly Simulation</h4>
+              <h4 className="text-sm font-bold text-emerald-850 dark:text-emerald-300 font-display flex items-center gap-1.5">
+                <span>Persistent Memory Active</span>
+                <span className="text-[10px] bg-emerald-100 text-emerald-800 font-extrabold px-2 py-0.5 rounded-md dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">Auto-Saved</span>
+              </h4>
               <p className="text-xs text-emerald-650 dark:text-emerald-400/90 font-medium mt-0.5">
-                We've auto-loaded 15 default functionaries and cash reserves. Edit names, target payouts, and counts to recalculate.
+                All staff details, payouts, denomination stocks, and strategy choices are continuously saved in local memory.
               </p>
             </div>
           </div>
-          <button
-            onClick={() => {
-              // Reset to blank state
-              setFunctionaries([]);
-              const emptyStock: DenominationStock = {};
-              selectedCurrency.denominations.forEach(d => { emptyStock[d] = 0; });
-              setStock(emptyStock);
-              setManualOverrides({});
-            }}
-            className="px-4 py-2 bg-white hover:bg-emerald-50 text-emerald-800 text-xs font-bold rounded-xl border border-emerald-200 transition-all cursor-pointer shadow-3xs whitespace-nowrap dark:bg-slate-800 dark:hover:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/60"
-          >
-            Clear Sheet & Start Fresh
-          </button>
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <button
+              onClick={() => {
+                if (window.confirm('Reset to initial preloaded sample simulation? Any current custom edits will be replaced.')) {
+                  setFunctionaries(getSampleFunctionaries());
+                  setStock(getSampleStock('INR'));
+                  setManualOverrides({});
+                }
+              }}
+              className="px-3 py-2 bg-emerald-100/70 hover:bg-emerald-200/80 text-emerald-900 text-xs font-bold rounded-xl border border-emerald-200 transition-all cursor-pointer shadow-3xs whitespace-nowrap dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 dark:text-emerald-300 dark:border-emerald-800/80"
+            >
+              Restore Sample Data
+            </button>
+            <button
+              onClick={() => {
+                if (window.confirm('Clear all staff members and zero out the cash drawer?')) {
+                  setFunctionaries([]);
+                  const emptyStock: DenominationStock = {};
+                  selectedCurrency.denominations.forEach(d => { emptyStock[d] = 0; });
+                  setStock(emptyStock);
+                  setManualOverrides({});
+                }
+              }}
+              className="px-3 py-2 bg-white hover:bg-emerald-50 text-emerald-800 text-xs font-bold rounded-xl border border-emerald-200 transition-all cursor-pointer shadow-3xs whitespace-nowrap dark:bg-slate-800 dark:hover:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/60"
+            >
+              Clear Sheet & Start Fresh
+            </button>
+          </div>
         </div>
 
         {/* Division Strategy Controls */}
@@ -271,7 +426,10 @@ export default function App() {
             </p>
           </div>
         )}
-      </main>
-    </div>
+      </>
+    )}
+  </main>
+</div>
   );
 }
+
